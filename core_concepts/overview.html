@@ -313,7 +313,7 @@ as follows.</p>
 <li><input disabled="" type="checkbox" checked=""/>
 User chains</li>
 <li><input disabled="" type="checkbox" checked=""/>
-Permissioned chain (core protocol only)</li>
+Permissioned chains (core protocol only)</li>
 <li><input disabled="" type="checkbox" checked=""/>
 Cross-chain messages</li>
 <li><input disabled="" type="checkbox" checked=""/>
@@ -325,34 +325,44 @@ Application creation</li>
 <li><input disabled="" type="checkbox" checked=""/>
 Reconfigurations of validators</li>
 <li><input disabled="" type="checkbox" checked=""/>
-Initial support for gas fees</li>
+Support for gas fees</li>
 <li><input disabled="" type="checkbox" checked=""/>
-Initial support for storage fees and storage limits</li>
+Support for storage fees and storage limits</li>
 <li><input disabled="" type="checkbox" checked=""/>
-External services to help users create their first chain</li>
-<li><input disabled="" type="checkbox"/>
+External service (aka. "Faucet") to help users create their first chain</li>
+<li><input disabled="" type="checkbox" checked=""/>
 Permissioned chains (adding operation access control, demo of atomic
 swaps, etc)</li>
 <li><input disabled="" type="checkbox"/>
-Public chains (adding leader election, inbox constraints, etc)</li>
+Avoid repeatedly loading chain states from storage</li>
+<li><input disabled="" type="checkbox"/>
+Blob storage usable by system and user applications
+(generalizing/replacing bytecode storage)</li>
 <li><input disabled="" type="checkbox"/>
 Support for easy onboarding of user chains into a new application
 (removing the need to accept requests)</li>
 <li><input disabled="" type="checkbox"/>
-Improved pub/sub channels (removing the need to accept subscriptions)</li>
+Replace pub/sub channels by data streams (removing the need to accept
+subscriptions)</li>
 <li><input disabled="" type="checkbox"/>
-Blob storage for applications (generalizing bytecode storage)</li>
+Allow chain clients to control which chains they track (lazily/actively)
+and execute (do not execute all tracked chains)</li>
+<li><input disabled="" type="checkbox"/>
+Multi-signed events to facilitate future bridges to external chains</li>
+<li><input disabled="" type="checkbox"/>
+Public chains (adding leader election, inbox constraints, etc)</li>
+<li><input disabled="" type="checkbox"/>
+Transaction scripts</li>
+<li><input disabled="" type="checkbox"/>
+Support for dynamic shard assignment</li>
 <li><input disabled="" type="checkbox"/>
 Support for archiving chains</li>
 <li><input disabled="" type="checkbox"/>
-Wallet-friendly chain clients (compile to Wasm/JS, do not maintain
-execution states for other chains)</li>
-<li><input disabled="" type="checkbox"/>
-General tokenomics and incentives for all stakeholders</li>
+Tokenomics and incentives for all stakeholders</li>
 <li><input disabled="" type="checkbox"/>
 Governance on the admin chain (e.g. DPoS, onboarding of validators)</li>
 <li><input disabled="" type="checkbox"/>
-Auditing procedures</li>
+Permissionless auditing protocol</li>
 </ul>
 <h3 id="wasm-vm-integration"><a class="header" href="#wasm-vm-integration">Wasm VM integration</a></h3>
 <ul>
@@ -363,20 +373,17 @@ Support for the Wasmtime VM (experimental)</li>
 <li><input disabled="" type="checkbox" checked=""/>
 Test gas metering and deterministic execution across VMs</li>
 <li><input disabled="" type="checkbox" checked=""/>
-Composing Wasm applications on the same chain (initial version)</li>
+Composing Wasm applications on the same chain</li>
 <li><input disabled="" type="checkbox" checked=""/>
 Support for non-blocking (yet deterministic) calls to storage</li>
 <li><input disabled="" type="checkbox" checked=""/>
 Support for read-only GraphQL services in Wasm</li>
 <li><input disabled="" type="checkbox" checked=""/>
-Support for mocked system APIs (initial version)</li>
+Support for mocked system APIs</li>
 <li><input disabled="" type="checkbox" checked=""/>
-More efficient cross-application calls</li>
+Improve host/guest stub generation to make mocks easier</li>
 <li><input disabled="" type="checkbox"/>
-Improve host/guest stub generation to make mocks easier (currently
-wit-bindgen)</li>
-<li><input disabled="" type="checkbox"/>
-Compile user full node to Wasm/JS</li>
+Support for Wasm/JS</li>
 </ul>
 <h3 id="storage"><a class="header" href="#storage">Storage</a></h3>
 <ul>
@@ -388,17 +395,23 @@ Support for Rocksdb</li>
 <li><input disabled="" type="checkbox" checked=""/>
 Experimental support for DynamoDb</li>
 <li><input disabled="" type="checkbox" checked=""/>
-Initial derive macros for GraphQL</li>
+Derive macros for GraphQL</li>
 <li><input disabled="" type="checkbox" checked=""/>
-Initial support for ScyllaDb</li>
+Support for ScyllaDb</li>
 <li><input disabled="" type="checkbox" checked=""/>
 Make library fully extensible by users (requires better GraphQL macros)</li>
+<li><input disabled="" type="checkbox" checked=""/>
+In-memory storage service for testing purposes</li>
+<li><input disabled="" type="checkbox" checked=""/>
+Support for Web storage (IndexedDB)</li>
 <li><input disabled="" type="checkbox"/>
 Performance benchmarks and improvements (including faster state hashing)</li>
 <li><input disabled="" type="checkbox"/>
-Production-grade support for the chosen main database</li>
+Better configuration management</li>
 <li><input disabled="" type="checkbox"/>
-Support global object locks (needed for dynamic sharding)</li>
+Local Write-Ahead Log</li>
+<li><input disabled="" type="checkbox"/>
+Production-grade support for the chosen main database</li>
 <li><input disabled="" type="checkbox"/>
 Tooling for debugging</li>
 <li><input disabled="" type="checkbox"/>
@@ -415,18 +428,20 @@ Basic frontend (aka. proxy) supporting fixed internal shards</li>
 <li><input disabled="" type="checkbox" checked=""/>
 Observability</li>
 <li><input disabled="" type="checkbox" checked=""/>
-Initial kubernetes support in CI</li>
+Kubernetes support in CI</li>
 <li><input disabled="" type="checkbox" checked=""/>
-Initial deployment using a cloud provider</li>
+Deployment using a cloud provider</li>
 <li><input disabled="" type="checkbox"/>
-New frontend to support dynamic shard assignment</li>
+Horizontal scalable frontend (aka. proxy)</li>
+<li><input disabled="" type="checkbox"/>
+Dynamic shard assignment</li>
 <li><input disabled="" type="checkbox"/>
 Cloud integration to demonstrate elastic scaling</li>
 </ul>
 <h3 id="web3-sdk"><a class="header" href="#web3-sdk">Web3 SDK</a></h3>
 <ul>
 <li><input disabled="" type="checkbox" checked=""/>
-Initial traits for contract and service interfaces</li>
+Traits for contract and service interfaces</li>
 <li><input disabled="" type="checkbox" checked=""/>
 Support for unit testing</li>
 <li><input disabled="" type="checkbox" checked=""/>
@@ -438,19 +453,21 @@ Local GraphQL service to query and browse application states</li>
 <li><input disabled="" type="checkbox" checked=""/>
 Use GraphQL mutations to execute operations and create blocks</li>
 <li><input disabled="" type="checkbox" checked=""/>
-Initial ABIs for contract and service interfaces</li>
-<li><input disabled="" type="checkbox"/>
+ABIs for contract and service interfaces</li>
+<li><input disabled="" type="checkbox" checked=""/>
 Allowing message sender to pay for message execution fees</li>
+<li><input disabled="" type="checkbox"/>
+Wallet as a browser extension (no VM)</li>
+<li><input disabled="" type="checkbox"/>
+Wallet as a browser extension (with Wasm VM)</li>
+<li><input disabled="" type="checkbox"/>
+Easier communication with EVM chains</li>
 <li><input disabled="" type="checkbox"/>
 Bindings to use native cryptographic primitives from Wasm</li>
 <li><input disabled="" type="checkbox"/>
 Allowing applications to pay for user fees</li>
 <li><input disabled="" type="checkbox"/>
 Allowing applications to use permissioned chains and public chains</li>
-<li><input disabled="" type="checkbox"/>
-Wallet as a browser extension (no VM)</li>
-<li><input disabled="" type="checkbox"/>
-Wallet as a browser extension (with Wasm VM)</li>
 </ul>
 
                     </main>
