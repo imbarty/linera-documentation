@@ -197,14 +197,16 @@ configuration of a chain. Specifically, microchains can be <em>single-owner</em>
 </ul>
 <h2 id="cross-chain-messaging"><a class="header" href="#cross-chain-messaging">Cross-Chain Messaging</a></h2>
 <p>In traditional networks with a single blockchain, every transaction can access
-the entire execution state. This is not the case in Linera where the state of a
-microchain is only affected by its own blocks.</p>
+the application's entire execution state. This is not the case in Linera where
+the state of an application is spread across multiple microchains, and the state
+on any individual microchain is only affected by the blocks of that microchain.</p>
 <p>Cross-chain messaging is a way for different microchains to communicate with
 each other asynchronously. This method allows applications and data to be
 distributed across multiple chains for better scalability. When an application
-on one chain sends a message to another chain, a cross-chain request is created.
-These requests are implemented using remote procedure calls (RPCs) within the
-validators' internal network, ensuring that each request is executed only once.</p>
+on one chain sends a message to itself on another chain, a cross-chain request
+is created. These requests are implemented using remote procedure calls (RPCs)
+within the validators' internal network, ensuring that each request is executed
+only once.</p>
 <p>Instead of immediately modifying the target chain, messages are placed first in
 the target chain's <strong>inbox</strong>. When an owner of the target chain creates its next
 block in the future, they may reference a selection of messages taken from the
@@ -230,9 +232,10 @@ over consecutive blocks.</p>
 </code></pre>
 <p>The Linera protocol allows receivers to discard messages but not to change the
 ordering of selected messages inside the communication queue between two chains.
-If a selected message fails to execute, it is skipped during the execution of
-the receiver's block. The current implementation of the Linera client always
-selects as many messages as possible from inboxes, and never discards messages.</p>
+If a selected message fails to execute, the wallet will automatically skip it
+when proposing the receiver's block. The current implementation of the Linera
+client always selects as many messages as possible from inboxes, and never
+discards messages unless they fail to execute.</p>
 <h2 id="chain-ownership-semantics"><a class="header" href="#chain-ownership-semantics">Chain Ownership Semantics</a></h2>
 <p>Only single-owner chains are currently supported in the Linera SDK. However,
 microchains can create new microchains for other users, and control of a chain
