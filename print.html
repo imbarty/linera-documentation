@@ -358,12 +358,8 @@ linera query-balance
 Each validator and client has a built-in Wasm virtual machine (VM) which can
 execute bytecode.</p>
 <p>Let's build the <code>counter</code> application from the <code>examples/</code> subdirectory:</p>
-<pre><code class="language-bash">cd examples/counter &amp;&amp; cargo build --release
+<pre><code class="language-bash">cd examples/counter &amp;&amp; cargo build --release --target wasm32-unknown-unknown
 </code></pre>
-<blockquote>
-<p>Note: This will automatically build Wasm, not native code, thanks to the
-configuration file <code>examples/.cargo/config.toml</code>.</p>
-</blockquote>
 <h2 id="publishing-your-application"><a class="header" href="#publishing-your-application">Publishing your Application</a></h2>
 <p>You can publish the bytecode and create an application using it on your local
 network using the <code>linera</code> client's <code>publish-and-create</code> command and provide:</p>
@@ -623,7 +619,7 @@ Support for mocked system APIs</li>
 <li><input disabled="" type="checkbox" checked=""/>
 Improve host/guest stub generation to make mocks easier</li>
 <li><input disabled="" type="checkbox"/>
-Support for Wasm/JS</li>
+Support for running Wasm applications in the browser</li>
 </ul>
 <h3 id="storage"><a class="header" href="#storage">Storage</a></h3>
 <ul>
@@ -672,7 +668,7 @@ Kubernetes support in CI</li>
 <li><input disabled="" type="checkbox" checked=""/>
 Deployment using a cloud provider</li>
 <li><input disabled="" type="checkbox"/>
-Horizontal scalable frontend (aka. proxy)</li>
+Horizontally scalable frontend (aka. proxy)</li>
 <li><input disabled="" type="checkbox"/>
 Dynamic shard assignment</li>
 <li><input disabled="" type="checkbox"/>
@@ -932,9 +928,9 @@ you to graphically explore the state of your application.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="applications"><a class="header" href="#applications">Applications</a></h1>
 <p>The programming model of Linera is designed so that developers can take
 advantage of microchains to scale their applications.</p>
-<p>Linera uses the WebAssembly Virtual Machine (Wasm) to execute user applications.
-Currently, the <a href="core_concepts/../sdk.html">Linera SDK</a> is focused on the
-<a href="https://www.rust-lang.org/">Rust</a> programming language.</p>
+<p>Linera uses the <a href="https://webassembly.org">WebAssembly (Wasm)</a> Virtual Machine to
+execute user applications. Currently, the <a href="core_concepts/../sdk.html">Linera SDK</a> is focused on
+the <a href="https://www.rust-lang.org/">Rust</a> programming language.</p>
 <p>Linera applications are structured using the familiar notion of <strong>Rust crate</strong>:
 the external interfaces of an application (including initialization parameters,
 operations and messages) generally go into the library part of its crate, while
@@ -953,8 +949,8 @@ identifier.</li>
 <li>A user can create a new application instance, by providing the bytecode
 identifier and initialization arguments. This process returns an application
 identifier which can be used to reference and interact with the application.</li>
-<li>The same bytecode identifier can be used as many times is needed by as many
-users are needed to create distinct applications.</li>
+<li>The same bytecode identifier can be used as many times needed by as many
+users needed to create distinct applications.</li>
 </ol>
 <p>Importantly, the application deployment lifecycle is abstracted from the user,
 and an application can be published with a single command:</p>
@@ -971,8 +967,6 @@ application's state. The details are covered in more depth in the
 <p>The <strong>service</strong> is non-metered and read-only. It is used primarily to query the
 state of an application and populate the presentation layer (think front-end)
 with the data required for a user interface.</p>
-<p>Finally, the application's state is shared by the contract and service in the
-form of a <a href="core_concepts/./../advanced_topics/views.html">View</a>, but more on that later.</p>
 <h2 id="operations-and-messages"><a class="header" href="#operations-and-messages">Operations and Messages</a></h2>
 <blockquote>
 <p>For this section we'll be using a simplified version of the example
@@ -1006,7 +1000,7 @@ can be sent from one chain to another, always within the same application. Block
 proposers also actively include messages in their block proposal, but unlike
 with operations, they are only allowed to include them in the right order
 (possibly skipping some), and only if they were actually created by another
-chain (or the same chain, earlier).</p>
+chain (or by a previous block of the same chain).</p>
 <p>In our "fungible token" application, a message to credit an account would look
 like this:</p>
 <pre><code class="language-rust ignore"><span class="boring">extern crate serde;
@@ -1027,7 +1021,7 @@ message creates new messages, those may also be configured to have the same
 authentication as the received message.</p>
 <p>In other words, the block signer can have its authority propagated across chains
 through series of messages. This allows applications to safely store user state
-in chains that the user may not have the authority to produce blocks. The
+on chains that the user may not have the authority to produce blocks. The
 application may also allow only the authorized user to change that state, and
 not even the chain owner is able to override that.</p>
 <p>The figure below shows four chains (A, B, C, D) and some blocks produced in
@@ -1132,7 +1126,8 @@ service bytecode.</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="creating-the-application-state"><a class="header" href="#creating-the-application-state">Creating the Application State</a></h1>
 <p>The <code>struct</code> which defines your application's state can be found in
-<code>src/state.rs</code>.</p>
+<code>src/state.rs</code>. An application state is the data that is persisted on storage
+between transactions.</p>
 <p>To represent our counter, we're going to need a single <code>u64</code>. To persist the
 counter we'll be using Linera's <a href="sdk/../advanced_topics/views.html">view</a> paradigm.</p>
 <p>Views are a little like an
@@ -1296,7 +1291,7 @@ pub trait Contract: WithContractAbi + ContractAbi + Send + Sized {
     }
 }</code></pre>
 <p>The full trait definition can be found
-<a href="https://github.com/linera-io/linera-protocol/blob/main/linera-sdk/src/lib.rs">here</a>.</p>
+<a href="https://github.com/linera-io/linera-protocol/blob/756bc35d0747181af025f70802b782bf1387abba/linera-sdk/src/lib.rs">here</a>.</p>
 <p>There's quite a bit going on here, so let's break it down and take one method at
 a time.</p>
 <p>For this application, we'll be using the <code>initialize</code> and <code>execute_operation</code>

@@ -235,12 +235,8 @@ linera query-balance
 Each validator and client has a built-in Wasm virtual machine (VM) which can
 execute bytecode.</p>
 <p>Let's build the <code>counter</code> application from the <code>examples/</code> subdirectory:</p>
-<pre><code class="language-bash">cd examples/counter &amp;&amp; cargo build --release
+<pre><code class="language-bash">cd examples/counter &amp;&amp; cargo build --release --target wasm32-unknown-unknown
 </code></pre>
-<blockquote>
-<p>Note: This will automatically build Wasm, not native code, thanks to the
-configuration file <code>examples/.cargo/config.toml</code>.</p>
-</blockquote>
 <h2 id="publishing-your-application"><a class="header" href="#publishing-your-application">Publishing your Application</a></h2>
 <p>You can publish the bytecode and create an application using it on your local
 network using the <code>linera</code> client's <code>publish-and-create</code> command and provide:</p>

@@ -175,7 +175,8 @@
                     <main>
                         <h1 id="creating-the-application-state"><a class="header" href="#creating-the-application-state">Creating the Application State</a></h1>
 <p>The <code>struct</code> which defines your application's state can be found in
-<code>src/state.rs</code>.</p>
+<code>src/state.rs</code>. An application state is the data that is persisted on storage
+between transactions.</p>
 <p>To represent our counter, we're going to need a single <code>u64</code>. To persist the
 counter we'll be using Linera's <a href="../advanced_topics/views.html">view</a> paradigm.</p>
 <p>Views are a little like an
