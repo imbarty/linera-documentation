@@ -264,8 +264,8 @@ profile = "minimal"
 </code></pre>
 <h2 id="installing-from-cratesio"><a class="header" href="#installing-from-cratesio">Installing from crates.io</a></h2>
 <p>You may install the Linera binaries with</p>
-<pre><code class="language-bash">cargo install linera-sdk@0.10.1
-cargo install linera-service@0.10.1
+<pre><code class="language-bash">cargo install --locked linera-sdk@0.10.1
+cargo install --locked linera-service@0.10.1
 </code></pre>
 <p>and use <code>linera-sdk</code> as a library for Linera Wasm applications:</p>
 <pre><code class="language-bash">cargo add linera-sdk@0.10.1
@@ -279,8 +279,8 @@ cd linera-protocol
 git checkout -t origin/devnet_2024_03_26  # Current release branch
 </code></pre>
 <p>To install the Linera toolchain locally from source, you may run:</p>
-<pre><code class="language-bash">cargo install --path linera-sdk
-cargo install --path linera-service
+<pre><code class="language-bash">cargo install --locked --path linera-sdk
+cargo install --locked --path linera-service
 </code></pre>
 <p>Alternatively, for developing and debugging, you may instead use the binaries
 compiled in debug mode, e.g. using <code>export PATH="$PWD/target/debug:$PATH"</code>.</p>
@@ -1808,7 +1808,7 @@ mod tests {
 <p>Running <code>linera project test</code> is easier, but if there's a need to run
 <code>cargo test</code> explicitly to run the unit tests, Cargo must be configured to use
 the custom test runner <code>linera-wasm-test-runner</code>. This binary can be built from
-the repository or installed with <code>cargo install linera-sdk</code>.</p>
+the repository or installed with <code>cargo install --locked linera-sdk</code>.</p>
 <pre><code class="language-bash">cd linera-protocol
 cargo build -p linera-sdk --bin linera-wasm-test-runner --release
 </code></pre>
