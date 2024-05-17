@@ -257,7 +257,7 @@ protocol itself, see the installation section on
 <a href="https://github.com/linera-io/linera-protocol/blob/main/INSTALL.md">GitHub</a>.</p>
 <p>This manual was tested with the following Rust toolchain:</p>
 <pre><code class="language-text">[toolchain]
-channel = "1.77.2"
+channel = "1.75.0"
 components = [ "clippy", "rustfmt", "rust-src" ]
 targets = [ "wasm32-unknown-unknown" ]
 profile = "minimal"
@@ -286,7 +286,7 @@ cargo install --locked --path linera-service
 compiled in debug mode, e.g. using <code>export PATH="$PWD/target/debug:$PATH"</code>.</p>
 <p>This manual was tested against the following commit of the
 <a href="https://github.com/linera-io/linera-protocol">repository</a>:</p>
-<pre><code class="language-text">d9e352463e0a572b3e6ec84dcf0bb9a55fab2d49
+<pre><code class="language-text">687bb93985b6806ff2686f57cac968db0c7513dd
 </code></pre>
 <h2 id="bash-helper-optional"><a class="header" href="#bash-helper-optional">Bash helper (optional)</a></h2>
 <p>Consider adding the output of <code>linera net helper</code> to your <code>~/.bash_profile</code> to
@@ -1184,6 +1184,16 @@ pub trait Abi: ContractAbi + ServiceAbi {}</code></pre>
 contract. Each type represents a specific part of the contract's behavior:</p>
 <pre><code class="language-rust ignore">/// A trait that includes all the types exported by a Linera application contract.
 pub trait ContractAbi {
+    /// Immutable parameters specific to this application (e.g. the name of a token).
+    type Parameters: Serialize + DeserializeOwned + Send + Sync + Clone + Debug + 'static;
+
+    /// Initialization argument passed to a new application on the chain that created it
+    /// (e.g. an initial amount of tokens minted).
+    ///
+    /// To share configuration data on every chain, use [`ContractAbi::Parameters`]
+    /// instead.
+    type InitializationArgument: Serialize + DeserializeOwned + Send + Sync + Debug + 'static;
+
     /// The type of operation executed by the application.
     ///
     /// Operations are transactions directly added to a block by the creator (and signer)
@@ -1214,6 +1224,9 @@ service component of your application.</p>
 application:</p>
 <pre><code class="language-rust ignore">/// A trait that includes all the types exported by a Linera application service.
 pub trait ServiceAbi {
+    /// Immutable parameters specific to this application (e.g. the name of a token).
+    type Parameters: Serialize + DeserializeOwned + Send + Sync + Clone + Debug + 'static;
+
     /// The type of a query receivable by the application's service.
     type Query: Serialize + DeserializeOwned + Send + Sync + Debug + 'static;
 
@@ -1278,7 +1291,7 @@ pub trait Contract: WithContractAbi + ContractAbi + Send + Sized {
     }
 }</code></pre>
 <p>The full trait definition can be found
-<a href="https://github.com/linera-io/linera-protocol/blob/d9e352463e0a572b3e6ec84dcf0bb9a55fab2d49/linera-sdk/src/lib.rs">here</a>.</p>
+<a href="https://github.com/linera-io/linera-protocol/blob/687bb93985b6806ff2686f57cac968db0c7513dd/linera-sdk/src/lib.rs">here</a>.</p>
 <p>There's quite a bit going on here, so let's break it down and take one method at
 a time.</p>
 <p>For this application, we'll be using the <code>initialize</code> and <code>execute_operation</code>
