@@ -237,10 +237,31 @@ when proposing the receiver's block. The current implementation of the Linera
 client always selects as many messages as possible from inboxes, and never
 discards messages unless they fail to execute.</p>
 <h2 id="chain-ownership-semantics"><a class="header" href="#chain-ownership-semantics">Chain Ownership Semantics</a></h2>
-<p>Only single-owner chains are currently supported in the Linera SDK. However,
-microchains can create new microchains for other users, and control of a chain
-can be transferred to another user by changing the owner ID. A chain is
-permanently deactivated when its owner ID is set to <code>None</code>.</p>
+<p>Active chains can have one or multiple owners. Chains with zero owners are
+permanently deactivated.</p>
+<p>In Linera, the validators guarantee <em>safety</em>: On each chain, at each height,
+there is at most one unique block.</p>
+<p>But <em>liveness</em>—actually adding blocks to a chain at all—relies on the owners.
+There are different types of rounds and owners, optimized for different use
+cases:</p>
+<ul>
+<li>First an optional <em>fast</em> round, where a <em>super owner</em> can propose blocks that
+get confirmed with very particularly low latency, optimal for single-owner
+chains with no contention.</li>
+<li>Then a number of <em>multi-leader rounds</em>, where all <em>regular owners</em> can propose
+blocks. This works well even if there is occasional, temporary contention: an
+owner using multiple devices, or multiple people using the same chain
+infrequently.</li>
+<li>And finally <em>single-leader rounds</em>: These give each regular chain owner a time
+slot in which only they can propose a new block, without being hindered by any
+other owners' proposals. This is ideal for chains with many users that are
+trying to commit blocks at the same time.</li>
+</ul>
+<p>The number of multi-leader rounds is configurable: On chains with fluctuating
+levels of activity, this allows the system to dynamically switch to
+single-leader mode whenever all multi-leader rounds fail during periods of high
+contention. Chains that very often have high activity from multiple owners can
+set the number of multi-leader rounds to 0.</p>
 <p>For more detail and examples on how to open and close chains, see the wallet
 section on <a href="wallets.html#opening-a-chain">chain management</a>.</p>
 
