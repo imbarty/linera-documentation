@@ -182,9 +182,9 @@ application is always handled by the <em>same</em> application on the target cha
 handling code is guaranteed to be the same as the sending code, but the state
 may be different.</p>
 <p>For your application, you can specify any serializable type as the <code>Message</code>
-type in your <code>ContractAbi</code> implementation. To send a message, use the
+type in your <code>Contract</code> implementation. To send a message, use the
 <a href="https://docs.rs/linera-sdk/latest/linera_sdk/struct.ContractRuntime.html"><code>ContractRuntime</code></a>
-made available as an argument to the contract's [<code>Contract::new</code>] constructor.
+made available as an argument to the contract's [<code>Contract::load</code>] constructor.
 The runtime is usually stored inside the contract object, as we did when
 <a href="./contract.html">writing the contract binary</a>. We can then call
 <a href="https://docs.rs/linera-sdk/latest/linera_sdk/struct.ContractRuntime.html#prepare_message"><code>ContractRuntime::prepare_message</code></a>
@@ -206,24 +206,21 @@ the <code>incoming_messages</code> in one of their blocks. When that happens, th
 contract's <code>execute_message</code> method gets called on their chain.</p>
 <p>While preparing the message to be sent, it is possible to enable authentication
 forwarding and/or tracking. Authentication forwarding means that the message is
-executed with the same authenticated signer as the sender of the message, while
-tracking means that the message is sent back to the sender if the receiver skips
-it. The example below enables both flags:</p>
+executed by the receiver with the same authenticated signer as the sender of the
+message, while tracking means that the message is sent back to the sender if the
+receiver rejects it. The example below enables both flags:</p>
 <pre><code class="language-rust ignore">    self.runtime
         .prepare_message(message_contents)
         .with_tracking()
         .with_authentication()
         .send_to(destination_chain_id);</code></pre>
 <h2 id="example-fungible-token"><a class="header" href="#example-fungible-token">Example: Fungible Token</a></h2>
-<p>In the
-<a href="https://github.com/linera-io/linera-protocol/tree/main/examples/fungible"><code>fungible</code> example application</a>,
-such a message can be the transfer of tokens from one chain to another. If the
-sender includes a <code>Transfer</code> operation on their chain, it decreases their
-account balance and sends a <code>Credit</code> message to the recipient's chain:</p>
-<pre><code class="language-rust ignore">async fn execute_operation(
-    &amp;mut self,
-    operation: Self::Operation,
-) -&gt; Result&lt;Self::Response, Self::Error&gt; {
+<p>In the <a href="https://github.com/linera-io/linera-protocol/tree/d9e352463e0a572b3e6ec84dcf0bb9a55fab2d49/examples/fungible"><code>fungible</code> example
+application</a>, such a message can
+be the transfer of tokens from one chain to another. If the sender includes a
+<code>Transfer</code> operation on their chain, it decreases their account balance and
+sends a <code>Credit</code> message to the recipient's chain:</p>
+<pre><code class="language-rust ignore">async fn execute_operation(&amp;mut self, operation: Self::Operation) -&gt; Self::Response {
     match operation {
         // ...
         Operation::Transfer {
@@ -235,7 +232,7 @@ account balance and sends a <code>Credit</code> message to the recipient's chain
             self.state.debit(owner, amount).await?;
             self.finish_transfer_to_account(amount, target_account, owner)
                 .await;
-            Ok(FungibleResponse::Ok)
+            FungibleResponse::Ok
         }
         // ...
     }
@@ -258,12 +255,13 @@ async fn finish_transfer_to_account(
         self.runtime
             .prepare_message(message)
             .with_authentication()
+            .with_tracking()
             .send_to(target_account.chain_id);
     }
 }</code></pre>
 <p>On the recipient's chain, <code>execute_message</code> is called, which increases their
 account balance.</p>
-<pre><code class="language-rust ignore">async fn execute_message(&amp;mut self, message: Message) -&gt; Result&lt;(), Self::Error&gt; {
+<pre><code class="language-rust ignore">async fn execute_message(&amp;mut self, message: Message) {
     match message {
         Message::Credit {
             amount,
@@ -275,8 +273,6 @@ account balance.</p>
         }
         // ...
     }
-
-    Ok(())
 }</code></pre>
 
                     </main>

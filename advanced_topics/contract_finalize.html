@@ -175,25 +175,15 @@
                     <main>
                         <h1 id="contract-finalization"><a class="header" href="#contract-finalization">Contract Finalization</a></h1>
 <p>When a transaction finishes executing successfully, there's a final step where
-all loaded application contracts are allowed to <code>finalize</code>, similarly to
-executing a destructor. The default implementation of <code>finalize</code> just persists
-the application's state:</p>
-<pre><code class="language-rust ignore">    /// Finishes the execution of the current transaction.
-    async fn finalize(&amp;mut self) -&gt; Result&lt;(), Self::Error&gt; {
-        Self::Storage::store(self.state_mut()).await;
-        Ok(())
-    }</code></pre>
-<p>Applications may want to override the <code>finalize</code> method, which allows performing
-some clean-up operations after execution finished. While finalizing, contracts
-may send messages, read and write to the state, but are not allowed to call
-other applications, because they are all also finalizing.</p>
-<blockquote>
-<p>If <code>finalize</code> is overriden, the default implementation is <strong>not</strong> executed, so
-the developer must ensure that the application's state is persisted correctly.</p>
-</blockquote>
-<p>While finalizing, contracts can force the transaction to fail by panicking or
-returning an error. The block is then rejected, even if the entire transaction's
-operation had succeeded before <code>finalize</code> was called. This allows a contract to
+all loaded application contracts have their <code>Contract::store</code> implementation
+called. This can be seen to be similar to executing a destructor. In that sense,
+applications may want to perform some final operations after execution finished.
+While finalizing, contracts may send messages, read and write to the state, but
+are not allowed to call other applications, because they are all also in the
+process of finalizing.</p>
+<p>While finalizing, contracts can force the transaction to fail by panicking. The
+block is then rejected, even if the entire transaction's operation had succeeded
+before the application's <code>Contract::store</code> was called. This allows a contract to
 reject transactions if other applications don't follow any required constraints
 it establishes after it responds to a cross-application call.</p>
 <p>As an example, a contract that executes a cross-application call with
@@ -205,14 +195,16 @@ cross-application call with <code>Operation::EndSession</code> before the transa
     active_sessions: HashSet&lt;ApplicationId&gt;;
 }
 
-#[async_trait]
 impl Contract for MyContract {
-    type Error = MyError;
-    type State = MyState;
-    type Storage = ViewStateStorage&lt;Self&gt;;
     type Message = ();
+    type InstantiationArgument = ();
+    type Parameters = ();
 
-    async fn new(state: Self::State, runtime: ContractRuntime&lt;Self&gt;) -&gt; Result&lt;Self, Self::Error&gt; {
+    async fn load(runtime: ContractRuntime&lt;Self&gt;) -&gt; Self {
+        let state = MyState::load(ViewStorageContext::from(runtime.key_value_store()))
+            .await
+            .expect("Failed to load state");
+
         MyContract {
             state,
             runtime,
@@ -220,21 +212,9 @@ impl Contract for MyContract {
         }
     }
 
-    fn state_mut(&amp;mut self) -&gt; &amp;mut Self::State {
-        &amp;mut self.state
-    }
+    async fn instantiate(&amp;mut self, (): Self::InstantiationArgument) {}
 
-    async fn initialize(
-        &amp;mut self,
-        argument: Self::InitializationArgument,
-    ) -&gt; Result&lt;(), Self::Error&gt; {
-        Ok(())
-    }
-
-    async fn execute_operation(
-        &amp;mut self,
-        operation: Self::Operation,
-    ) -&gt; Result&lt;Self::Response, Self::Error&gt; {
+    async fn execute_operation(&amp;mut self, operation: Self::Operation) -&gt; Self::Response {
         let caller = self.runtime
             .authenticated_caller_id()
             .expect("Missing caller ID");
@@ -259,15 +239,13 @@ impl Contract for MyContract {
         unreachable!("This example doesn't support messages");
     }
 
-    async fn finalize(&amp;mut self) -&gt; Result&lt;(), Self::Error&gt; {
+    async fn store(&amp;mut self) {
         assert!(
             self.active_sessions.is_empty(),
             "Some sessions have not ended"
         );
 
-        Self::Storage::store(self.state_mut()).await;
-
-        Ok(())
+        self.state.save().await.expect("Failed to save state");
     }
 }</code></pre>
 

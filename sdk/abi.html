@@ -197,16 +197,6 @@ pub trait Abi: ContractAbi + ServiceAbi {}</code></pre>
 contract. Each type represents a specific part of the contract's behavior:</p>
 <pre><code class="language-rust ignore">/// A trait that includes all the types exported by a Linera application contract.
 pub trait ContractAbi {
-    /// Immutable parameters specific to this application (e.g. the name of a token).
-    type Parameters: Serialize + DeserializeOwned + Send + Sync + Clone + Debug + 'static;
-
-    /// Initialization argument passed to a new application on the chain that created it
-    /// (e.g. an initial amount of tokens minted).
-    ///
-    /// To share configuration data on every chain, use [`ContractAbi::Parameters`]
-    /// instead.
-    type InitializationArgument: Serialize + DeserializeOwned + Send + Sync + Debug + 'static;
-
     /// The type of operation executed by the application.
     ///
     /// Operations are transactions directly added to a block by the creator (and signer)
@@ -219,14 +209,11 @@ pub trait ContractAbi {
 }</code></pre>
 <p>All these types must implement the <code>Serialize</code>, <code>DeserializeOwned</code>, <code>Send</code>,
 <code>Sync</code>, <code>Debug</code> traits, and have a <code>'static</code> lifetime.</p>
-<p>In our example, we would like to change our <code>InitializationArgument</code>,
-<code>Operation</code> to <code>u64</code>, like so:</p>
+<p>In our example, we would like to change our <code>Operation</code> to <code>u64</code>, like so:</p>
 <pre><code class="language-rust"><span class="boring">extern crate linera_base;
 </span><span class="boring">use linera_base::abi::ContractAbi;
 </span><span class="boring">struct CounterAbi;
 </span>impl ContractAbi for CounterAbi {
-    type InitializationArgument = u64;
-    type Parameters = ();
     type Operation = u64;
     type Response = ();
 }</code></pre>
@@ -237,9 +224,6 @@ service component of your application.</p>
 application:</p>
 <pre><code class="language-rust ignore">/// A trait that includes all the types exported by a Linera application service.
 pub trait ServiceAbi {
-    /// Immutable parameters specific to this application (e.g. the name of a token).
-    type Parameters: Serialize + DeserializeOwned + Send + Sync + Clone + Debug + 'static;
-
     /// The type of a query receivable by the application's service.
     type Query: Serialize + DeserializeOwned + Send + Sync + Debug + 'static;
 
@@ -255,7 +239,6 @@ pub trait ServiceAbi {
 </span>impl ServiceAbi for CounterAbi {
     type Query = async_graphql::Request;
     type QueryResponse = async_graphql::Response;
-    type Parameters = ();
 }</code></pre>
 
                     </main>

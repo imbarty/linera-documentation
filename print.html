@@ -257,26 +257,26 @@ protocol itself, see the installation section on
 <a href="https://github.com/linera-io/linera-protocol/blob/main/INSTALL.md">GitHub</a>.</p>
 <p>This manual was tested with the following Rust toolchain:</p>
 <pre><code class="language-text">[toolchain]
-channel = "1.75.0"
+channel = "1.77.2"
 components = [ "clippy", "rustfmt", "rust-src" ]
 targets = [ "wasm32-unknown-unknown" ]
 profile = "minimal"
 </code></pre>
 <h2 id="installing-from-cratesio"><a class="header" href="#installing-from-cratesio">Installing from crates.io</a></h2>
 <p>You may install the Linera binaries with</p>
-<pre><code class="language-bash">cargo install --locked linera-sdk@0.10.3
-cargo install --locked linera-service@0.10.3
+<pre><code class="language-bash">cargo install --locked linera-sdk@0.11.1
+cargo install --locked linera-service@0.11.1
 </code></pre>
 <p>and use <code>linera-sdk</code> as a library for Linera Wasm applications:</p>
-<pre><code class="language-bash">cargo add linera-sdk@0.10.3
+<pre><code class="language-bash">cargo add linera-sdk@0.11.1
 </code></pre>
-<p>The version number <code>0.10.3</code> corresponds to the
+<p>The version number <code>0.11.1</code> corresponds to the
 current Devnet of Linera and may change frequently.</p>
 <h2 id="installing-from-github"><a class="header" href="#installing-from-github">Installing from GitHub</a></h2>
 <p>Download the source from <a href="https://github.com/linera-io/linera-protocol">GitHub</a>:</p>
 <pre><code class="language-bash">git clone https://github.com/linera-io/linera-protocol.git
 cd linera-protocol
-git checkout -t origin/devnet_2024_03_26  # Current release branch
+git checkout -t origin/devnet_2024_05_07  # Current release branch
 </code></pre>
 <p>To install the Linera toolchain locally from source, you may run:</p>
 <pre><code class="language-bash">cargo install --locked --path linera-sdk
@@ -286,7 +286,7 @@ cargo install --locked --path linera-service
 compiled in debug mode, e.g. using <code>export PATH="$PWD/target/debug:$PATH"</code>.</p>
 <p>This manual was tested against the following commit of the
 <a href="https://github.com/linera-io/linera-protocol">repository</a>:</p>
-<pre><code class="language-text">687bb93985b6806ff2686f57cac968db0c7513dd
+<pre><code class="language-text">d9e352463e0a572b3e6ec84dcf0bb9a55fab2d49
 </code></pre>
 <h2 id="bash-helper-optional"><a class="header" href="#bash-helper-optional">Bash helper (optional)</a></h2>
 <p>Consider adding the output of <code>linera net helper</code> to your <code>~/.bash_profile</code> to
@@ -966,7 +966,7 @@ advantage of microchains to scale their applications.</p>
 execute user applications. Currently, the <a href="core_concepts/../sdk.html">Linera SDK</a> is focused on
 the <a href="https://www.rust-lang.org/">Rust</a> programming language.</p>
 <p>Linera applications are structured using the familiar notion of <strong>Rust crate</strong>:
-the external interfaces of an application (including initialization parameters,
+the external interfaces of an application (including instantiation parameters,
 operations and messages) generally go into the library part of its crate, while
 the core of each application is compiled into binary files for the Wasm
 architecture.</p>
@@ -981,7 +981,7 @@ flexible:</p>
 <li>The bytecode is published to the network on a microchain, and assigned an
 identifier.</li>
 <li>A user can create a new application instance, by providing the bytecode
-identifier and initialization arguments. This process returns an application
+identifier and instantiation arguments. This process returns an application
 identifier which can be used to reference and interact with the application.</li>
 <li>The same bytecode identifier can be used as many times needed by as many
 users needed to create distinct applications.</li>
@@ -990,7 +990,7 @@ users needed to create distinct applications.</li>
 and an application can be published with a single command:</p>
 <pre><code class="language-bash">linera publish-and-create &lt;contract-path&gt; &lt;service-path&gt; &lt;init-args&gt;
 </code></pre>
-<p>This will publish the bytecode as well as initialize the application for you.</p>
+<p>This will publish the bytecode as well as instantiate the application for you.</p>
 <h2 id="anatomy-of-an-application"><a class="header" href="#anatomy-of-an-application">Anatomy of an Application</a></h2>
 <p>An <strong>application</strong> is broken into two major components, the <em>contract</em> and the
 <em>service</em>.</p>
@@ -1155,8 +1155,6 @@ to create an app;</li>
 contract bytecode;</li>
 <li><code>src/service.rs</code>: the application's service, and the binary target for the
 service bytecode.</li>
-<li><code>.cargo/config.toml</code>: modifies the default target used by <code>cargo</code> to be
-<code>wasm32-unknown-unknown</code></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="creating-the-application-state"><a class="header" href="#creating-the-application-state">Creating the Application State</a></h1>
 <p>The <code>struct</code> which defines your application's state can be found in
@@ -1218,16 +1216,6 @@ pub trait Abi: ContractAbi + ServiceAbi {}</code></pre>
 contract. Each type represents a specific part of the contract's behavior:</p>
 <pre><code class="language-rust ignore">/// A trait that includes all the types exported by a Linera application contract.
 pub trait ContractAbi {
-    /// Immutable parameters specific to this application (e.g. the name of a token).
-    type Parameters: Serialize + DeserializeOwned + Send + Sync + Clone + Debug + 'static;
-
-    /// Initialization argument passed to a new application on the chain that created it
-    /// (e.g. an initial amount of tokens minted).
-    ///
-    /// To share configuration data on every chain, use [`ContractAbi::Parameters`]
-    /// instead.
-    type InitializationArgument: Serialize + DeserializeOwned + Send + Sync + Debug + 'static;
-
     /// The type of operation executed by the application.
     ///
     /// Operations are transactions directly added to a block by the creator (and signer)
@@ -1240,14 +1228,11 @@ pub trait ContractAbi {
 }</code></pre>
 <p>All these types must implement the <code>Serialize</code>, <code>DeserializeOwned</code>, <code>Send</code>,
 <code>Sync</code>, <code>Debug</code> traits, and have a <code>'static</code> lifetime.</p>
-<p>In our example, we would like to change our <code>InitializationArgument</code>,
-<code>Operation</code> to <code>u64</code>, like so:</p>
+<p>In our example, we would like to change our <code>Operation</code> to <code>u64</code>, like so:</p>
 <pre><code class="language-rust"><span class="boring">extern crate linera_base;
 </span><span class="boring">use linera_base::abi::ContractAbi;
 </span><span class="boring">struct CounterAbi;
 </span>impl ContractAbi for CounterAbi {
-    type InitializationArgument = u64;
-    type Parameters = ();
     type Operation = u64;
     type Response = ();
 }</code></pre>
@@ -1258,9 +1243,6 @@ service component of your application.</p>
 application:</p>
 <pre><code class="language-rust ignore">/// A trait that includes all the types exported by a Linera application service.
 pub trait ServiceAbi {
-    /// Immutable parameters specific to this application (e.g. the name of a token).
-    type Parameters: Serialize + DeserializeOwned + Send + Sync + Clone + Debug + 'static;
-
     /// The type of a query receivable by the application's service.
     type Query: Serialize + DeserializeOwned + Send + Sync + Debug + 'static;
 
@@ -1276,59 +1258,43 @@ pub trait ServiceAbi {
 </span>impl ServiceAbi for CounterAbi {
     type Query = async_graphql::Request;
     type QueryResponse = async_graphql::Response;
-    type Parameters = ();
 }</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="writing-the-contract-binary"><a class="header" href="#writing-the-contract-binary">Writing the Contract Binary</a></h1>
 <p>The contract binary is the first component of a Linera application. It can
 actually change the state of the application.</p>
 <p>To create a contract, we need to create a new type and implement the <code>Contract</code>
 trait for it, which is as follows:</p>
-<pre><code class="language-rust ignore">#[async_trait]
-pub trait Contract: WithContractAbi + ContractAbi + Send + Sized {
-    /// The type used to report errors to the execution environment.
-    type Error: Error + From&lt;serde_json::Error&gt; + From&lt;bcs::Error&gt; + 'static;
-
-    /// The type used to store the persisted application state.
-    type State: Sync;
-
-    /// The desired storage backend used to store the application's state.
-    type Storage: ContractStateStorage&lt;Self&gt; + Send + 'static;
-
+<pre><code class="language-rust ignore">pub trait Contract: WithContractAbi + ContractAbi + Sized {
     /// The type of message executed by the application.
-    type Message: Serialize + DeserializeOwned + Send + Sync + Debug + 'static;
+    type Message: Serialize + DeserializeOwned + Debug;
 
-    /// Creates an in-memory instance of the contract handler from the application's `state`.
-    async fn new(state: Self::State, runtime: ContractRuntime&lt;Self&gt;) -&gt; Result&lt;Self, Self::Error&gt;;
+    /// Immutable parameters specific to this application (e.g. the name of a token).
+    type Parameters: Serialize + DeserializeOwned + Clone + Debug;
 
-    /// Returns the current state of the application so that it can be persisted.
-    fn state_mut(&amp;mut self) -&gt; &amp;mut Self::State;
+    /// Instantiation argument passed to a new application on the chain that created it
+    /// (e.g. an initial amount of tokens minted).
+    type InstantiationArgument: Serialize + DeserializeOwned + Debug;
 
-    /// Initializes the application on the chain that created it.
-    async fn initialize(
-        &amp;mut self,
-        argument: Self::InitializationArgument,
-    ) -&gt; Result&lt;(), Self::Error&gt;;
+    /// Creates a in-memory instance of the contract handler.
+    async fn load(runtime: ContractRuntime&lt;Self&gt;) -&gt; Self;
+
+    /// Instantiates the application on the chain that created it.
+    async fn instantiate(&amp;mut self, argument: Self::InstantiationArgument);
 
     /// Applies an operation from the current block.
-    async fn execute_operation(
-        &amp;mut self,
-        operation: Self::Operation,
-    ) -&gt; Result&lt;Self::Response, Self::Error&gt;;
+    async fn execute_operation(&amp;mut self, operation: Self::Operation) -&gt; Self::Response;
 
     /// Applies a message originating from a cross-chain message.
-    async fn execute_message(&amp;mut self, message: Self::Message) -&gt; Result&lt;(), Self::Error&gt;;
+    async fn execute_message(&amp;mut self, message: Self::Message);
 
     /// Finishes the execution of the current transaction.
-    async fn finalize(&amp;mut self) -&gt; Result&lt;(), Self::Error&gt; {
-        Self::Storage::store(self.state_mut()).await;
-        Ok(())
-    }
+    async fn store(self);
 }</code></pre>
 <p>The full trait definition can be found
-<a href="https://github.com/linera-io/linera-protocol/blob/687bb93985b6806ff2686f57cac968db0c7513dd/linera-sdk/src/lib.rs">here</a>.</p>
+<a href="https://github.com/linera-io/linera-protocol/blob/d9e352463e0a572b3e6ec84dcf0bb9a55fab2d49/linera-sdk/src/lib.rs">here</a>.</p>
 <p>There's quite a bit going on here, so let's break it down and take one method at
 a time.</p>
-<p>For this application, we'll be using the <code>initialize</code> and <code>execute_operation</code>
+<p>For this application, we'll be using the <code>load</code>, <code>execute_operation</code> and <code>store</code>
 methods.</p>
 <h2 id="the-contract-lifecycle"><a class="header" href="#the-contract-lifecycle">The Contract Lifecycle</a></h2>
 <p>To implement the application contract, we first create a type for the contract:</p>
@@ -1342,52 +1308,52 @@ about the current execution and also allows sending messages, among other
 things. Other fields can be added, and they can be used to store volatile data
 that only exists while the current transaction is being executed, and discarded
 afterwards.</p>
-<p>When a transaction is executed, first the application's state is loaded, then
-the contract type is created by calling the <code>Contract::new</code> method. This method
-receives the state and a handle to the runtime that the contract can use. For
-our implementation, we will just store the received parameters:</p>
-<pre><code class="language-rust ignore">    async fn new(state: Counter, runtime: ContractRuntime&lt;Self&gt;) -&gt; Result&lt;Self, Self::Error&gt; {
+<p>When a transaction is executed, the contract type is created through a call to
+<code>Contract::load</code> method. This method receives a handle to the runtime that the
+contract can use, and should use it to load the application state. For our
+implementation, we will load the state and create the <code>CounterContract</code>
+instance:</p>
+<pre><code class="language-rust ignore">    async fn load(runtime: ContractRuntime&lt;Self&gt;) -&gt; Self {
+        let state = Counter::load(ViewStorageContext::from(runtime.key_value_store()))
+            .await
+            .expect("Failed to load state");
         CounterContract { state, runtime }
     }</code></pre>
 <p>When the transaction finishes executing successfully, there's a final step where
-all loaded application contracts are allowed to <code>finalize</code>, similarly to
-executing a destructor. The default implementation of <code>finalize</code> just persists
-the application's state, and that's why we must provide it access to the state
-through the <code>state_mut</code> method:</p>
-<pre><code class="language-rust ignore">    fn state_mut(&amp;mut self) -&gt; &amp;mut Self::State {
-        &amp;mut self.state
+all loaded application contracts are called in order to do any final checks and
+persist its state to storage. That final step is a call to the <code>Contract::store</code>
+method, which can be thought of as similar to executing a destructor. In our
+implementation we will persist the state back to storage:</p>
+<pre><code class="language-rust ignore">    async fn store(mut self) {
+        self.state.save().await.expect("Failed to save state");
     }</code></pre>
-<p>Applications may want to override the <code>finalize</code> method in more advanced
-scenarios, but they must ensure they don't forget to <em>persist</em> their state if
-they do so. For more information see the
-<a href="sdk/../advanced_topics/contract_finalize.html">Contract finalization section</a>.</p>
-<h2 id="initializing-our-application"><a class="header" href="#initializing-our-application">Initializing our Application</a></h2>
+<p>It's possible to do more than just saving the state, and the
+<a href="sdk/../advanced_topics/contract_finalize.html">Contract finalization section</a>
+provides more details on that.</p>
+<h2 id="instantiating-our-application"><a class="header" href="#instantiating-our-application">Instantiating our Application</a></h2>
 <p>The first thing that happens when an application is created from a bytecode is
-that it is initialized. This is done by calling the contract's
-<code>Contract::initialize</code> method.</p>
-<p><code>Contract::initialize</code> is only called once when the application is created and
+that it is instantiated. This is done by calling the contract's
+<code>Contract::instantiate</code> method.</p>
+<p><code>Contract::instantiate</code> is only called once when the application is created and
 only on the microchain that created the application.</p>
-<p>Deployment on other microchains will use the <code>Default</code> implementation of the
-application state if <code>SimpleStateStorage</code> is used, or the <code>Default</code> value of all
-sub-views in the state if the <code>ViewStateStorage</code> is used.</p>
+<p>Deployment on other microchains will use the <code>Default</code> value of all sub-views in
+the state if the state uses the view paradigm.</p>
 <p>For our example application, we'll want to initialize the state of the
 application to an arbitrary number that can be specified on application creation
-using its initialization parameters:</p>
-<pre><code class="language-rust ignore">    async fn initialize(&amp;mut self, value: u64) -&gt; Result&lt;(), Self::Error&gt; {
+using its instatiation parameters:</p>
+<pre><code class="language-rust ignore">    async fn instantiate(&amp;mut self, value: u64) {
         self.state.value.set(value);
-        Ok(())
     }</code></pre>
 <h2 id="implementing-the-increment-operation"><a class="header" href="#implementing-the-increment-operation">Implementing the Increment Operation</a></h2>
 <p>Now that we have our counter's state and a way to initialize it to any value we
 would like, we need a way to increment our counter's value. Execution requests
 from block proposers or other applications are broadly called 'operations'.</p>
-<p>To create a new operation, we need to use the method
-<code>Contract::execute_operation</code>. In the counter's case, it will be receiving a
-<code>u64</code> which is used to increment the counter:</p>
-<pre><code class="language-rust ignore">    async fn execute_operation(&amp;mut self, operation: u64) -&gt; Result&lt;(), Self::Error&gt; {
+<p>To handle an operation, we need to implement the <code>Contract::execute_operation</code>
+method. In the counter's case, the operation it will be receiving is a <code>u64</code>
+which is used to increment the counter by that value:</p>
+<pre><code class="language-rust ignore">    async fn execute_operation(&amp;mut self, operation: u64) {
         let current = self.value.get();
         self.value.set(current + operation);
-        Ok(())
     }</code></pre>
 <h2 id="declaring-the-abi"><a class="header" href="#declaring-the-abi">Declaring the ABI</a></h2>
 <p>Finally, to link our <code>Contract</code> trait implementation with the ABI of the
@@ -1406,26 +1372,18 @@ with your app. Instead, you might prefer to define a distinct set of queries
 that can be made against your application.</p>
 <p>The <code>Service</code> trait is how you define the interface into your application. The
 <code>Service</code> trait is defined as follows:</p>
-<pre><code class="language-rust ignore">/// The service interface of a Linera application.
-#[async_trait]
-pub trait Service: WithServiceAbi + ServiceAbi {
-    /// Type used to report errors to the execution environment.
-    type Error: Error + From&lt;serde_json::Error&gt;;
+<pre><code class="language-rust ignore">pub trait Service: WithServiceAbi + ServiceAbi + Sized {
+    /// Immutable parameters specific to this application.
+    type Parameters: Serialize + DeserializeOwned + Send + Sync + Clone + Debug + 'static;
 
-    /// The type used to store the persisted application state.
-    type State;
-
-    /// The desired storage backend used to store the application's state.
-    type Storage: ServiceStateStorage;
-
-    /// Creates a in-memory instance of the service handler from the application's `state`.
-    async fn new(state: Self::State, runtime: ServiceRuntime&lt;Self&gt;) -&gt; Result&lt;Self, Self::Error&gt;;
+    /// Creates a in-memory instance of the service handler.
+    async fn new(runtime: ServiceRuntime&lt;Self&gt;) -&gt; Self;
 
     /// Executes a read-only query on the state of this application.
-    async fn handle_query(&amp;self, query: Self::Query) -&gt; Result&lt;Self::QueryResponse, Self::Error&gt;;
+    async fn handle_query(&amp;self, query: Self::Query) -&gt; Self::QueryResponse;
 }</code></pre>
 <p>The full service trait definition can be found
-<a href="https://github.com/linera-io/linera-protocol/blob/main/linera-sdk/src/lib.rs">here</a>.</p>
+<a href="https://github.com/linera-io/linera-protocol/blob/d9e352463e0a572b3e6ec84dcf0bb9a55fab2d49/linera-sdk/src/lib.rs">here</a>.</p>
 <p>Let's implement <code>Service</code> for our counter application.</p>
 <p>First, we create a new type for the service, similarly to the contract:</p>
 <pre><code class="language-rust ignore">pub struct CounterService {
@@ -1433,7 +1391,8 @@ pub trait Service: WithServiceAbi + ServiceAbi {
 }</code></pre>
 <p>Just like with the <code>CounterContract</code> type, this type usually has two types: the
 application <code>state</code> and the <code>runtime</code>. We can omit the fields if we don't use
-them, so in this example we're omitting the <code>runtime</code> field.</p>
+them, so in this example we're omitting the <code>runtime</code> field, since its only used
+when constructing the <code>CounterService</code> type.</p>
 <p>We need to generate the necessary boilerplate for implementing the service
 <a href="https://component-model.bytecodealliance.org/design/wit.html">WIT interface</a>,
 export the necessary resource types and functions so that the service can be
@@ -1441,33 +1400,30 @@ executed. Fortunately, there is a macro to perform this code generation, so just
 add the following to <code>service.rs</code>:</p>
 <pre><code class="language-rust ignore">linera_sdk::service!(CounterService);</code></pre>
 <p>Next, we need to implement the <code>Service</code> trait for <code>CounterService</code> type. The
-first step is to define the <code>Service</code>'s associated types:</p>
+first step is to define the <code>Service</code>'s associated type, which is the global
+parameters specified when the application is instantiated. In our case, the
+global paramters aren't used, so we can just specify the unit type:</p>
 <pre><code class="language-rust ignore">#[async_trait]
 impl Service for CounterService {
-    type Error = Error;
-    type Storage = ViewStateStorage&lt;Self&gt;;
-    type State = Counter;
+    type Parameters = ();
 }</code></pre>
-<p>The only type specified above that isn't yet defined is the <code>Error</code> type, so
-let's create it below the trait implementation:</p>
-<pre><code class="language-rust ignore">/// An error that can occur during the contract execution.
-#[derive(Debug, Error)]
-pub enum Error {
-    /// Invalid query argument; could not deserialize GraphQL request.
-    #[error("Invalid query argument; could not deserialize GraphQL request")]
-    InvalidQuery(#[from] serde_json::Error),
-}</code></pre>
-<p>Also like in contracts, we must implement a <code>new</code> constructor when implementing
-the <code>Service</code> trait. The constructor receives the state and the runtime handle:</p>
-<pre><code class="language-rust ignore">    async fn new(state: Self::State, _runtime: ServiceRuntime&lt;Self&gt;) -&gt; Result&lt;Self, Self::Error&gt; {
+<p>Also like in contracts, we must implement a <code>load</code> constructor when implementing
+the <code>Service</code> trait. The constructor receives the runtime handle and should use
+it to load the application state:</p>
+<pre><code class="language-rust ignore">    async fn load(runtime: ServiceRuntime&lt;Self&gt;) -&gt; Self {
+        let state = Counter::load(ViewStorageContext::from(runtime.key_value_store()))
+            .await
+            .expect("Failed to load state");
         Ok(CounterService { state })
     }</code></pre>
+<p>Services don't have a <code>store</code> method because they are read-only and can't
+persist any changes back to the storage.</p>
 <p>The actual functionality of the service starts in the <code>handle_query</code> method. We
 will accept GraphQL queries and handle them using the
 <a href="https://github.com/async-graphql/async-graphql"><code>async-graphql</code> crate</a>. To
 forward the queries to custom GraphQL handlers we will implement in the next
 section, we use the following code:</p>
-<pre><code class="language-rust ignore">    async fn handle_query(&amp;mut self, request: Request) -&gt; Result&lt;Response, Self::Error&gt; {
+<pre><code class="language-rust ignore">    async fn handle_query(&amp;mut self, request: Request) -&gt; Response {
         let schema = Schema::build(
             // implemented in the next section
             QueryRoot { value: *self.value.get() },
@@ -1476,7 +1432,7 @@ section, we use the following code:</p>
             EmptySubscription,
         )
         .finish();
-        Ok(schema.execute(request).await)
+        schema.execute(request).await
     }
 }</code></pre>
 <p>Finally, as before, the following code is needed to incorporate the ABI
@@ -1512,9 +1468,9 @@ impl MutationRoot {
 }</code></pre>
 <p>We haven't included the imports in the above code; they are left as an exercise
 to the reader (but remember to import <code>async_graphql::Object</code>). If you want the
-full source code and associated tests check out the
-<a href="https://github.com/linera-io/linera-protocol/blob/main/examples/counter/src/service.rs">examples section</a>
-on GitHub.</p>
+full source code and associated tests check out the <a href="https://github.com/linera-io/linera-protocol/blob/d9e352463e0a572b3e6ec84dcf0bb9a55fab2d49/examples/counter/src/service.rs">examples
+section</a> on
+GitHub.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="deploying-the-application"><a class="header" href="#deploying-the-application">Deploying the Application</a></h1>
 <p>The first step to deploy your application is to configure a wallet. This will
 determine where the application will be deployed: either to a local net or to
@@ -1563,9 +1519,9 @@ application is always handled by the <em>same</em> application on the target cha
 handling code is guaranteed to be the same as the sending code, but the state
 may be different.</p>
 <p>For your application, you can specify any serializable type as the <code>Message</code>
-type in your <code>ContractAbi</code> implementation. To send a message, use the
+type in your <code>Contract</code> implementation. To send a message, use the
 <a href="https://docs.rs/linera-sdk/latest/linera_sdk/struct.ContractRuntime.html"><code>ContractRuntime</code></a>
-made available as an argument to the contract's [<code>Contract::new</code>] constructor.
+made available as an argument to the contract's [<code>Contract::load</code>] constructor.
 The runtime is usually stored inside the contract object, as we did when
 <a href="sdk/./contract.html">writing the contract binary</a>. We can then call
 <a href="https://docs.rs/linera-sdk/latest/linera_sdk/struct.ContractRuntime.html#prepare_message"><code>ContractRuntime::prepare_message</code></a>
@@ -1587,24 +1543,21 @@ the <code>incoming_messages</code> in one of their blocks. When that happens, th
 contract's <code>execute_message</code> method gets called on their chain.</p>
 <p>While preparing the message to be sent, it is possible to enable authentication
 forwarding and/or tracking. Authentication forwarding means that the message is
-executed with the same authenticated signer as the sender of the message, while
-tracking means that the message is sent back to the sender if the receiver skips
-it. The example below enables both flags:</p>
+executed by the receiver with the same authenticated signer as the sender of the
+message, while tracking means that the message is sent back to the sender if the
+receiver rejects it. The example below enables both flags:</p>
 <pre><code class="language-rust ignore">    self.runtime
         .prepare_message(message_contents)
         .with_tracking()
         .with_authentication()
         .send_to(destination_chain_id);</code></pre>
 <h2 id="example-fungible-token"><a class="header" href="#example-fungible-token">Example: Fungible Token</a></h2>
-<p>In the
-<a href="https://github.com/linera-io/linera-protocol/tree/main/examples/fungible"><code>fungible</code> example application</a>,
-such a message can be the transfer of tokens from one chain to another. If the
-sender includes a <code>Transfer</code> operation on their chain, it decreases their
-account balance and sends a <code>Credit</code> message to the recipient's chain:</p>
-<pre><code class="language-rust ignore">async fn execute_operation(
-    &amp;mut self,
-    operation: Self::Operation,
-) -&gt; Result&lt;Self::Response, Self::Error&gt; {
+<p>In the <a href="https://github.com/linera-io/linera-protocol/tree/d9e352463e0a572b3e6ec84dcf0bb9a55fab2d49/examples/fungible"><code>fungible</code> example
+application</a>, such a message can
+be the transfer of tokens from one chain to another. If the sender includes a
+<code>Transfer</code> operation on their chain, it decreases their account balance and
+sends a <code>Credit</code> message to the recipient's chain:</p>
+<pre><code class="language-rust ignore">async fn execute_operation(&amp;mut self, operation: Self::Operation) -&gt; Self::Response {
     match operation {
         // ...
         Operation::Transfer {
@@ -1616,7 +1569,7 @@ account balance and sends a <code>Credit</code> message to the recipient's chain
             self.state.debit(owner, amount).await?;
             self.finish_transfer_to_account(amount, target_account, owner)
                 .await;
-            Ok(FungibleResponse::Ok)
+            FungibleResponse::Ok
         }
         // ...
     }
@@ -1639,12 +1592,13 @@ async fn finish_transfer_to_account(
         self.runtime
             .prepare_message(message)
             .with_authentication()
+            .with_tracking()
             .send_to(target_account.chain_id);
     }
 }</code></pre>
 <p>On the recipient's chain, <code>execute_message</code> is called, which increases their
 account balance.</p>
-<pre><code class="language-rust ignore">async fn execute_message(&amp;mut self, message: Message) -&gt; Result&lt;(), Self::Error&gt; {
+<pre><code class="language-rust ignore">async fn execute_message(&amp;mut self, message: Message) {
     match message {
         Message::Credit {
             amount,
@@ -1656,8 +1610,6 @@ account balance.</p>
         }
         // ...
     }
-
-    Ok(())
 }</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="calling-other-applications"><a class="header" href="#calling-other-applications">Calling other Applications</a></h1>
 <p>We have seen that cross-chain messages sent by an application on one chain are
@@ -1688,13 +1640,13 @@ they are refunded.</p>
 <p>If Alice used the <code>fungible</code> example to create a Pugecoin application (with an
 impressionable pug as its mascot), then Bob can create a <code>crowd-funding</code>
 application, use Pugecoin's application ID as <code>CrowdFundingAbi::Parameters</code>, and
-specify in <code>CrowdFundingAbi::InitializationArgument</code> that his campaign will run
+specify in <code>CrowdFundingAbi::InstantiationArgument</code> that his campaign will run
 for one week and has a target of 1000 Pugecoins.</p>
 <p>Now let's say Carol wants to pledge 10 Pugecoin tokens to Bob's campaign.</p>
 <p>First she needs to make sure she has his crowd-funding application on her chain,
 e.g. using the <code>linera request-application</code> command. This will automatically
-also register Alice's application on her chain, because it is a dependency of
-Bob's.</p>
+also register Alice's Pugecoin application on her chain, because it is a
+dependency of Bob's.</p>
 <p>Now she can make her pledge by running the <code>linera service</code> and making a query
 to Bob's application:</p>
 <pre><code class="language-json">mutation { pledge(owner: "User:841…6c0", amount: "10") }
@@ -1729,8 +1681,11 @@ does now have 10 tokens on this chain and she authenticated the transfer
 indirectly by signing her block. The crowd-funding application now makes a note
 in its application state on Bob's chain that Carol has pledged 10 Pugecoin
 tokens.</p>
-<p>For the complete code please take a look at the <code>crowd-funding</code> and <code>fungible</code>
-applications in the <code>examples</code> folder in <code>linera-protocol</code>.</p>
+<p>For the complete code please take a look at the
+<a href="https://github.com/linera-io/linera-protocol/blob/d9e352463e0a572b3e6ec84dcf0bb9a55fab2d49/examples/crowd-funding/src/contract.rs"><code>crowd-funding</code></a>
+and the
+<a href="https://github.com/linera-io/linera-protocol/blob/d9e352463e0a572b3e6ec84dcf0bb9a55fab2d49/examples/fungible/src/contract.rs"><code>fungible</code></a>
+application contracts in the <code>examples</code> folder in <code>linera-protocol</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="printing-logs-from-an-application"><a class="header" href="#printing-logs-from-an-application">Printing Logs from an Application</a></h1>
 <p>Applications can use the <a href="https://crates.io/crates/log"><code>log</code> crate</a> to print
 log messages with different levels of importance. Log messages are useful during
@@ -1746,142 +1701,59 @@ other parts of the <code>linera</code> binary:</p>
 <pre><code class="language-ignore">export RUST_LOG="warn,linera_execution::wasm=trace"
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="writing-tests"><a class="header" href="#writing-tests">Writing Tests</a></h1>
-<p>Linera applications can be tested using unit tests or integration tests. Both
-are a bit different than usual Rust tests. Unit tests are executed inside a
-WebAssembly virtual machine in an environment that simulates a single microchain
-and a single application. System APIs are only available if they are mocked
-using helper functions from <code>linera_sdk::test</code>.</p>
-<p>Integration tests run outside a WebAssembly virtual machine, and use a simulated
-validator for testing. This allows creating chains and adding blocks to them in
-order to test interactions between multiple microchains and multiple
-applications.</p>
+<p>Linera applications can be tested using normal Rust unit tests or integration
+tests. Unit tests use a mock runtime for execution, so it's useful for testing
+the application as if it were running by itself on a single chain. Integration
+tests use a simulated validator for testing. This allows creating chains and
+adding blocks to them in order to test interactions between multiple microchains
+and multiple applications.</p>
 <p>Applications should consider having both types of tests. Unit tests should be
 used to focus on the application's internals and core functionality. Integration
 tests should be used to test how the application behaves on a more complex
 environment that's closer to the real network.</p>
 <blockquote>
-<p>In most cases, the simplest way to run both unit tests and integration tests
-is to call <code>linera project test</code> from the project's directory.</p>
+<p>For Rust tests, the <code>cargo test</code> command can be used to run both the unit and
+integration tests.</p>
 </blockquote>
 <h2 id="unit-tests"><a class="header" href="#unit-tests">Unit tests</a></h2>
 <p>Unit tests are written beside the application's source code (i.e., inside the
-<code>src</code> directory of the project). There are several differences to normal Rust
-unit tests:</p>
-<ul>
-<li>
-<p>the target <code>wasm32-unknown-unknown</code> must be selected;</p>
-</li>
-<li>
-<p>the custom test runner <code>linera-wasm-test-runner</code> must be used;</p>
-</li>
-<li>
-<p>the
-<a href="https://docs.rs/webassembly-test/latest/webassembly_test/"><code>#[webassembly_test]</code></a>
-attribute must be used instead of the usual <code>#[test]</code> attribute.</p>
-</li>
-</ul>
-<p>The first two items are done automatically by <code>linera project test</code>.</p>
-<p>Alternatively, one may set up the environment and run <code>cargo test</code> directly as
-described <a href="sdk/testing.html#manually-configuring-the-environment">below</a>.</p>
+<code>src</code> directory of the project). The main purpose of a unit test is to test
+parts of the application in an isolated environment. Anything that's external is
+usually mocked. When the <code>linera-sdk</code> is compiled with the <code>test</code> feature
+enabled, the <code>ContractRuntime</code> and <code>SystemRuntime</code> types are actually mock
+runtimes, and can be configured to return specific values for different tests.</p>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
-<p>A simple unit test is shown below, which tests if the application's
+<p>A simple unit test is shown below, which tests if the application contract's
 <code>do_something</code> method changes the application state.</p>
 <pre><code class="language-rust ignore">#[cfg(test)]
 mod tests {
-    use crate::state::ApplicationState;
-    use webassembly_test::webassembly_test;
+    use crate::{ApplicationContract, ApplicationState};
+    use linera_sdk::{util::BlockingWait, ContractRuntime};
 
-    #[webassembly_test]
+    #[test]
     fn test_do_something() {
-        let mut application = ApplicationState {
-            // Configure the application's initial state
-            ..ApplicationState::default()
-        };
+        let runtime = ContractRuntime::new();
+        let mut contract = ApplicationContract::load(runtime).blocking_wait();
 
-        let result = application.do_something();
+        let result = contract.do_something();
 
+        // Check that `do_something` succeeded
         assert!(result.is_ok());
-        assert_eq!(application, ApplicationState {
+        // Check that the state in memory was updated
+        assert_eq!(contract.state, ApplicationState {
             // Define the application's expected final state
             ..ApplicationState::default()
         });
-    }
-}</code></pre>
-<h3 id="mocking-system-apis"><a class="header" href="#mocking-system-apis">Mocking System APIs</a></h3>
-<p>Unit tests run in a constrained environment, so things like access to the
-key-value store, cross-chain messages and cross-application calls can't be
-executed. However, they can be simulated using mock APIs. The <code>linera-sdk::test</code>
-module provides some helper functions to mock the system APIs.</p>
-<p>Here's an example mocking the key-value store.</p>
-<pre><code class="language-rust ignore">#[cfg(test)]
-mod tests {
-    use crate::state::ApplicationState;
-    use linera_sdk::test::mock_key_value_store;
-    use webassembly_test::webassembly_test;
-
-    #[webassembly_test]
-    fn test_state_is_not_persisted() {
-        let mut storage = mock_key_value_store();
-
-        // Assuming the application uses views
-        let mut application = ApplicationState::load(storage.clone())
-            .now_or_never()
-            .expect("Mock key-value store returns immediately")
-            .expect("Failed to load view from mock key-value store");
-
-        // Assuming `do_something` changes the view, but does not persist it
-        let result = application.do_something();
-
-        assert!(result.is_ok());
-
         // Check that the state in memory is different from the state in storage
-        assert_ne!(application, ApplicatonState::load(storage));
+        assert_ne!(
+            contract.state,
+            ApplicatonState::load(ViewStorageContext::from(runtime.key_value_store()))
+        );
     }
 }</code></pre>
-<h3 id="running-unit-tests-with-cargo-test"><a class="header" href="#running-unit-tests-with-cargo-test">Running Unit Tests with <code>cargo test</code></a></h3>
-<p>Running <code>linera project test</code> is easier, but if there's a need to run
-<code>cargo test</code> explicitly to run the unit tests, Cargo must be configured to use
-the custom test runner <code>linera-wasm-test-runner</code>. This binary can be built from
-the repository or installed with <code>cargo install --locked linera-sdk</code>.</p>
-<pre><code class="language-bash">cd linera-protocol
-cargo build -p linera-sdk --bin linera-wasm-test-runner --release
-</code></pre>
-<p>The steps above build the <code>linera-wasm-test-runner</code> and places the resulting
-binary at <code>linera-protocol/target/release/linera-wasm-test-runner</code>.</p>
-<p>With the binary available, the last step is to configure Cargo. There are a few
-ways to do this. A quick way is to set the
-<code>CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER</code> environment variable to the path of
-the binary.</p>
-<p>A more persistent way is to change one of
-<a href="https://doc.rust-lang.org/cargo/reference/config.html#hierarchical-structure">Cargo's configuration files</a>.
-As an example, the following file can be placed inside the project's directory
-at <code>PROJECT_DIR/.cargo/config.toml</code>:</p>
-<pre><code class="language-ignore">[target.wasm32-unknown-unknown]
-runner = "PATH_TO/linera-wasm-test-runner"
-</code></pre>
-<p>After configuring the test runner, unit tests can be executed with</p>
-<pre><code class="language-bash">cargo test --target wasm32-unknown-unknown
-</code></pre>
-<p>Optionally, <code>wasm32-unknown-unknown</code> can be made the default build target with
-the following lines in <code>PROJECT_DIR/.cargo/config.toml</code>:</p>
-<pre><code class="language-ignore">[build]
-target = "wasm32-unknown-unknown"
-</code></pre>
 <h2 id="integration-tests"><a class="header" href="#integration-tests">Integration Tests</a></h2>
 <p>Integration tests are usually written separately from the application's source
 code (i.e., inside a <code>tests</code> directory that's beside the <code>src</code> directory).</p>
-<p>Integration tests are normal Rust integration tests, and they are compiled to
-the <strong>host</strong> target instead of the <code>wasm32-unknown-unknown</code> target used for unit
-tests. This is because unit tests run inside a WebAssembly virtual machine and
-integration tests run outside a virtual machine, starting isolated virtual
-machines to run each operation of each block added to each chain.</p>
-<blockquote>
-<p>Integration tests can be run with <code>linera project test</code> or simply
-<code>cargo test</code>.</p>
-</blockquote>
-<p>If you wish to use <code>cargo test</code> and have overridden your default target to be in
-<code>wasm32-unknown-unknown</code> in <code>.cargo/config.toml</code>, you will have to pass a native
-target to <code>cargo</code>, for instance <code>cargo test --target aarch64-apple-darwin</code>.</p>
 <p>Integration tests use the helper types from <code>linera_sdk::test</code> to set up a
 simulated Linera network, and publish blocks to microchains in order to execute
 the application.</p>
@@ -1890,7 +1762,11 @@ the application.</p>
 chains is shown below.</p>
 <pre><code class="language-rust ignore">#[tokio::test]
 async fn test_cross_chain_message() {
-    let (validator, application_id) = TestValidator::with_current_application(vec![], vec![]).await;
+    let parameters = vec![];
+    let instantiation_argument = vec![];
+
+    let (validator, application_id) =
+        TestValidator::with_current_application(parameters, instantiation_argument).await;
 
     let mut sender_chain = validator.get_chain(application_id.creation.chain_id).await;
     let mut receiver_chain = validator.new_chain().await;
@@ -2011,25 +1887,15 @@ persistent storage.</p>
 database was established correctly but the result is not what we expected.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="contract-finalization"><a class="header" href="#contract-finalization">Contract Finalization</a></h1>
 <p>When a transaction finishes executing successfully, there's a final step where
-all loaded application contracts are allowed to <code>finalize</code>, similarly to
-executing a destructor. The default implementation of <code>finalize</code> just persists
-the application's state:</p>
-<pre><code class="language-rust ignore">    /// Finishes the execution of the current transaction.
-    async fn finalize(&amp;mut self) -&gt; Result&lt;(), Self::Error&gt; {
-        Self::Storage::store(self.state_mut()).await;
-        Ok(())
-    }</code></pre>
-<p>Applications may want to override the <code>finalize</code> method, which allows performing
-some clean-up operations after execution finished. While finalizing, contracts
-may send messages, read and write to the state, but are not allowed to call
-other applications, because they are all also finalizing.</p>
-<blockquote>
-<p>If <code>finalize</code> is overriden, the default implementation is <strong>not</strong> executed, so
-the developer must ensure that the application's state is persisted correctly.</p>
-</blockquote>
-<p>While finalizing, contracts can force the transaction to fail by panicking or
-returning an error. The block is then rejected, even if the entire transaction's
-operation had succeeded before <code>finalize</code> was called. This allows a contract to
+all loaded application contracts have their <code>Contract::store</code> implementation
+called. This can be seen to be similar to executing a destructor. In that sense,
+applications may want to perform some final operations after execution finished.
+While finalizing, contracts may send messages, read and write to the state, but
+are not allowed to call other applications, because they are all also in the
+process of finalizing.</p>
+<p>While finalizing, contracts can force the transaction to fail by panicking. The
+block is then rejected, even if the entire transaction's operation had succeeded
+before the application's <code>Contract::store</code> was called. This allows a contract to
 reject transactions if other applications don't follow any required constraints
 it establishes after it responds to a cross-application call.</p>
 <p>As an example, a contract that executes a cross-application call with
@@ -2041,14 +1907,16 @@ cross-application call with <code>Operation::EndSession</code> before the transa
     active_sessions: HashSet&lt;ApplicationId&gt;;
 }
 
-#[async_trait]
 impl Contract for MyContract {
-    type Error = MyError;
-    type State = MyState;
-    type Storage = ViewStateStorage&lt;Self&gt;;
     type Message = ();
+    type InstantiationArgument = ();
+    type Parameters = ();
 
-    async fn new(state: Self::State, runtime: ContractRuntime&lt;Self&gt;) -&gt; Result&lt;Self, Self::Error&gt; {
+    async fn load(runtime: ContractRuntime&lt;Self&gt;) -&gt; Self {
+        let state = MyState::load(ViewStorageContext::from(runtime.key_value_store()))
+            .await
+            .expect("Failed to load state");
+
         MyContract {
             state,
             runtime,
@@ -2056,21 +1924,9 @@ impl Contract for MyContract {
         }
     }
 
-    fn state_mut(&amp;mut self) -&gt; &amp;mut Self::State {
-        &amp;mut self.state
-    }
+    async fn instantiate(&amp;mut self, (): Self::InstantiationArgument) {}
 
-    async fn initialize(
-        &amp;mut self,
-        argument: Self::InitializationArgument,
-    ) -&gt; Result&lt;(), Self::Error&gt; {
-        Ok(())
-    }
-
-    async fn execute_operation(
-        &amp;mut self,
-        operation: Self::Operation,
-    ) -&gt; Result&lt;Self::Response, Self::Error&gt; {
+    async fn execute_operation(&amp;mut self, operation: Self::Operation) -&gt; Self::Response {
         let caller = self.runtime
             .authenticated_caller_id()
             .expect("Missing caller ID");
@@ -2095,15 +1951,13 @@ impl Contract for MyContract {
         unreachable!("This example doesn't support messages");
     }
 
-    async fn finalize(&amp;mut self) -&gt; Result&lt;(), Self::Error&gt; {
+    async fn store(&amp;mut self) {
         assert!(
             self.active_sessions.is_empty(),
             "Some sessions have not ended"
         );
 
-        Self::Storage::store(self.state_mut()).await;
-
-        Ok(())
+        self.state.save().await.expect("Failed to save state");
     }
 }</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="validators"><a class="header" href="#validators">Validators</a></h1>
@@ -2365,7 +2219,7 @@ That way, even assets that are in flight can be returned.</p>
 <p>The
 <a href="https://github.com/linera-io/linera-protocol/tree/main/examples/matching-engine"><code>matching-engine</code> example application</a>
 does this:</p>
-<pre><code class="language-rust ignore">    async fn execute_operation(&amp;mut self, operation: Operation) -&gt; Result&lt;(), Self::Error&gt; {
+<pre><code class="language-rust ignore">    async fn execute_operation(&amp;mut self, operation: Operation) -&gt; Self::Response {
         match operation {
             // ...
             Operation::CloseChain =&gt; {
@@ -2379,7 +2233,7 @@ does this:</p>
                 }
                 self.runtime
                     .close_chain()
-                    .map_err(|_| MatchingEngineError::CloseChainError)?;
+                    .expect("The application does not have permissions to close the chain.");
             }
         }
     }</code></pre>
