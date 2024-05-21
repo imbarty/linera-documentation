@@ -195,7 +195,7 @@ that can be made against your application.</p>
     async fn handle_query(&amp;self, query: Self::Query) -&gt; Self::QueryResponse;
 }</code></pre>
 <p>The full service trait definition can be found
-<a href="https://github.com/linera-io/linera-protocol/blob/d9e352463e0a572b3e6ec84dcf0bb9a55fab2d49/linera-sdk/src/lib.rs">here</a>.</p>
+<a href="https://github.com/linera-io/linera-protocol/blob/1b3b46f0cd422607ed89e919a5ac24611fba8644/linera-sdk/src/lib.rs">here</a>.</p>
 <p>Let's implement <code>Service</code> for our counter application.</p>
 <p>First, we create a new type for the service, similarly to the contract:</p>
 <pre><code class="language-rust ignore">pub struct CounterService {
@@ -280,7 +280,7 @@ impl MutationRoot {
 }</code></pre>
 <p>We haven't included the imports in the above code; they are left as an exercise
 to the reader (but remember to import <code>async_graphql::Object</code>). If you want the
-full source code and associated tests check out the <a href="https://github.com/linera-io/linera-protocol/blob/d9e352463e0a572b3e6ec84dcf0bb9a55fab2d49/examples/counter/src/service.rs">examples
+full source code and associated tests check out the <a href="https://github.com/linera-io/linera-protocol/blob/1b3b46f0cd422607ed89e919a5ac24611fba8644/examples/counter/src/service.rs">examples
 section</a> on
 GitHub.</p>
 
