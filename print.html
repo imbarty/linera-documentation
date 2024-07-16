@@ -2544,12 +2544,14 @@ to perform TLS termination (unlike validators running on Kubernetes).</p>
 <p>Thus, it is required of validator operators to provide TLS termination and
 support long-lived HTTP/2 connections required for the functioning of the Linera
 notification system.</p>
+<p>Finally, the load balancer that performs TLS termination must redirect traffic
+from <code>443</code> to <code>19100</code> (the port exposed by the proxy).</p>
 <h3 id="creating-your-validator-configuration"><a class="header" href="#creating-your-validator-configuration">Creating your Validator Configuration</a></h3>
 <p>Validators are configured using a TOML file. You can use the following template
 to set up you own validator configuration:</p>
 <pre><code class="language-toml">server_config_path = "server.json"
 host = "&lt;your-host&gt;" # e.g. my-subdomain.my-domain.net
-port = 443
+port = 19100
 metrics_host = "proxy"
 metrics_port = 21100
 internal_host = "proxy"
@@ -2572,7 +2574,7 @@ the point of network creation. It is required for validators to function.</p>
 <p>Initially, the genesis configuration for each Testnet will be found in a public
 bucket managed by the Linera Protocol core team.</p>
 <p>An example can be found here:</p>
-<pre><code class="language-bash">wget "https://storage.cloud.google.com/linera-io-dev-public/devnet-2024-05-07/genesis.json"
+<pre><code class="language-bash">wget "https://storage.googleapis.com/linera-io-dev-public/devnet-2024-05-07/genesis.json"
 </code></pre>
 <h3 id="creating-your-keys"><a class="header" href="#creating-your-keys">Creating Your Keys</a></h3>
 <p>Now that the
@@ -2605,7 +2607,7 @@ traffic from existing users.</p>
 <h3 id="building-the-linera-docker-image"><a class="header" href="#building-the-linera-docker-image">Building the Linera Docker image</a></h3>
 <p>To build the Linera Docker image, run the following command from the root of the
 <code>linera-protocol</code> repository:</p>
-<pre><code class="language-bash">$ docker build -f docker/Dockerfile . -t linera
+<pre><code class="language-bash">docker build -f docker/Dockerfile . -t linera
 </code></pre>
 <p>This can take several minutes.</p>
 <h3 id="running-a-validator-node"><a class="header" href="#running-a-validator-node">Running a Validator Node</a></h3>
