@@ -2531,6 +2531,10 @@ node with Docker Compose.</p>
 <a href="https://docs.docker.com/compose/install/">installing Docker Compose</a> section in
 the Docker docs.</p>
 <h3 id="installing-the-linera-toolchain-2"><a class="header" href="#installing-the-linera-toolchain-2">Installing the Linera Toolchain</a></h3>
+<blockquote>
+<p>When installing the Linera Toolchain, you <strong>must</strong> check out the
+<code>testnet_abel</code> branch.</p>
+</blockquote>
 <p>To install the Linera Toolchain refer to the
 <a href="operators/testnets/../../developers/getting_started/installation.html#installing-from-github">installation section</a>.</p>
 <p>You want to install the toolchain from GitHub, as you'll be using the repository
@@ -2541,9 +2545,14 @@ to run the Docker Compose validator service.</p>
 <h3 id="infrastructure-configuration"><a class="header" href="#infrastructure-configuration">Infrastructure Configuration</a></h3>
 <p>Validators run via Docker Compose do not come with a pre-packaged load balancer
 to perform TLS termination (unlike validators running on Kubernetes).</p>
-<p>Thus, it is required of validator operators to provide TLS termination and
-support long-lived HTTP/2 connections required for the functioning of the Linera
-notification system.</p>
+<p>The load balancer configuration <strong>must</strong> have the following properties:</p>
+<ol>
+<li>Support HTTP/2 connections.</li>
+<li>Support gRPC connections.</li>
+<li>Support long-lived HTTP/2 connections.</li>
+<li>Support a maximum body size of up to 20 MB.</li>
+<li>Provide TLS termination with a certificate signed by a known CA.</li>
+</ol>
 <p>Finally, the load balancer that performs TLS termination must redirect traffic
 from <code>443</code> to <code>19100</code> (the port exposed by the proxy).</p>
 <h3 id="creating-your-validator-configuration"><a class="header" href="#creating-your-validator-configuration">Creating your Validator Configuration</a></h3>
@@ -2574,7 +2583,7 @@ the point of network creation. It is required for validators to function.</p>
 <p>Initially, the genesis configuration for each Testnet will be found in a public
 bucket managed by the Linera Protocol core team.</p>
 <p>An example can be found here:</p>
-<pre><code class="language-bash">wget "https://storage.googleapis.com/linera-io-dev-public/devnet-2024-05-07/genesis.json"
+<pre><code class="language-bash">wget "https://storage.googleapis.com/linera-io-dev-public/testnet-abel/genesis.json"
 </code></pre>
 <h3 id="creating-your-keys"><a class="header" href="#creating-your-keys">Creating Your Keys</a></h3>
 <p>Now that the
