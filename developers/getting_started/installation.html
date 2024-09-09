@@ -176,7 +176,7 @@
                         <h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
 <p>Let's start with the installation of the Linera development tools.</p>
 <h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
-<p>The Linera toolchain consist of two crates:</p>
+<p>The Linera toolchain consists of two crates:</p>
 <ul>
 <li>
 <p><code>linera-sdk</code> is the main library to program Linera applications in Rust.</p>
@@ -235,18 +235,18 @@ profile = "minimal"
 </code></pre>
 <h2 id="installing-from-cratesio"><a class="header" href="#installing-from-cratesio">Installing from crates.io</a></h2>
 <p>You may install the Linera binaries with</p>
-<pre><code class="language-bash">cargo install --locked linera-service@0.11.3
+<pre><code class="language-bash">cargo install --locked linera-service@0.12.0
 </code></pre>
 <p>and use <code>linera-sdk</code> as a library for Linera Wasm applications:</p>
-<pre><code class="language-bash">cargo add linera-sdk@0.11.3
+<pre><code class="language-bash">cargo add linera-sdk@0.12.0
 </code></pre>
-<p>The version number <code>0.11.3</code> corresponds to the
+<p>The version number <code>0.12.0</code> corresponds to the
 current Devnet of Linera and may change frequently.</p>
 <h2 id="installing-from-github"><a class="header" href="#installing-from-github">Installing from GitHub</a></h2>
 <p>Download the source from <a href="https://github.com/linera-io/linera-protocol">GitHub</a>:</p>
 <pre><code class="language-bash">git clone https://github.com/linera-io/linera-protocol.git
 cd linera-protocol
-git checkout -t origin/devnet_2024_05_07  # Current release branch
+git checkout -t origin/devnet_2024_09_04  # Current release branch
 </code></pre>
 <p>To install the Linera toolchain locally from source, you may run:</p>
 <pre><code class="language-bash">cargo install --locked --path linera-service

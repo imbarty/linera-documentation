@@ -197,12 +197,11 @@ does this:</p>
         match operation {
             // ...
             Operation::CloseChain =&gt; {
-                for order_id in self.state.orders.indices().await? {
+                for order_id in self.state.orders.indices().await.unwrap() {
                     match self.modify_order(order_id, ModifyAmount::All).await {
-                        Ok(transfer) =&gt; self.send_to(transfer),
+                        Some(transfer) =&gt; self.send_to(transfer),
                         // Orders with amount zero may have been cleared in an earlier iteration.
-                        Err(MatchingEngineError::OrderNotPresent) =&gt; continue,
-                        Err(error) =&gt; return Err(error),
+                        None =&gt; continue,
                     }
                 }
                 self.runtime

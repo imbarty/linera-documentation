@@ -212,7 +212,7 @@ toolchain and give a short example to get started with the Linera SDK.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
 <p>Let's start with the installation of the Linera development tools.</p>
 <h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
-<p>The Linera toolchain consist of two crates:</p>
+<p>The Linera toolchain consists of two crates:</p>
 <ul>
 <li>
 <p><code>linera-sdk</code> is the main library to program Linera applications in Rust.</p>
@@ -271,18 +271,18 @@ profile = "minimal"
 </code></pre>
 <h2 id="installing-from-cratesio"><a class="header" href="#installing-from-cratesio">Installing from crates.io</a></h2>
 <p>You may install the Linera binaries with</p>
-<pre><code class="language-bash">cargo install --locked linera-service@0.11.3
+<pre><code class="language-bash">cargo install --locked linera-service@0.12.0
 </code></pre>
 <p>and use <code>linera-sdk</code> as a library for Linera Wasm applications:</p>
-<pre><code class="language-bash">cargo add linera-sdk@0.11.3
+<pre><code class="language-bash">cargo add linera-sdk@0.12.0
 </code></pre>
-<p>The version number <code>0.11.3</code> corresponds to the
+<p>The version number <code>0.12.0</code> corresponds to the
 current Devnet of Linera and may change frequently.</p>
 <h2 id="installing-from-github"><a class="header" href="#installing-from-github">Installing from GitHub</a></h2>
 <p>Download the source from <a href="https://github.com/linera-io/linera-protocol">GitHub</a>:</p>
 <pre><code class="language-bash">git clone https://github.com/linera-io/linera-protocol.git
 cd linera-protocol
-git checkout -t origin/devnet_2024_05_07  # Current release branch
+git checkout -t origin/devnet_2024_09_04  # Current release branch
 </code></pre>
 <p>To install the Linera toolchain locally from source, you may run:</p>
 <pre><code class="language-bash">cargo install --locked --path linera-service
@@ -576,7 +576,7 @@ Permissioned chains (adding operation access control, demo of atomic
 swaps, etc)</li>
 <li><input disabled="" type="checkbox" checked=""/>
 Avoid repeatedly loading chain states from storage</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 Blob storage usable by system and user applications
 (generalizing/replacing bytecode storage)</li>
 <li><input disabled="" type="checkbox"/>
@@ -1039,7 +1039,9 @@ can be sent from one chain to another, always within the same application. Block
 proposers also actively include messages in their block proposal, but unlike
 with operations, they are only allowed to include them in the right order
 (possibly skipping some), and only if they were actually created by another
-chain (or by a previous block of the same chain).</p>
+chain (or by a previous block of the same chain). Messages that originate from
+the same transaction are included as a single transaction in the receiving
+block.</p>
 <p>In our "fungible token" application, a message to credit an account would look
 like this:</p>
 <pre><code class="language-rust ignore"><span class="boring">extern crate serde;
@@ -2229,12 +2231,11 @@ does this:</p>
         match operation {
             // ...
             Operation::CloseChain =&gt; {
-                for order_id in self.state.orders.indices().await? {
+                for order_id in self.state.orders.indices().await.unwrap() {
                     match self.modify_order(order_id, ModifyAmount::All).await {
-                        Ok(transfer) =&gt; self.send_to(transfer),
+                        Some(transfer) =&gt; self.send_to(transfer),
                         // Orders with amount zero may have been cleared in an earlier iteration.
-                        Err(MatchingEngineError::OrderNotPresent) =&gt; continue,
-                        Err(error) =&gt; return Err(error),
+                        None =&gt; continue,
                     }
                 }
                 self.runtime
@@ -2482,7 +2483,7 @@ profile = "minimal"
 <a href="https://github.com/linera-io/linera-protocol">GitHub</a>):</p>
 <pre><code class="language-bash">git clone https://github.com/linera-io/linera-protocol.git
 cd linera-protocol
-git checkout -t origin/devnet_2024_05_07  # Current release branch
+git checkout -t origin/devnet_2024_09_04  # Current release branch
 </code></pre>
 <p>and to install the Linera toolchain:</p>
 <pre><code class="language-bash">cargo install --locked --path linera-service --features kubernetes
