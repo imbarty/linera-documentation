@@ -2553,7 +2553,8 @@ Testnet.</p>
 branch <code>testnet_boole</code> you can run
 <code>scripts/deploy-validator.sh &lt;hostname&gt;</code> to deploy a Linera validator.</p>
 <p>For example:</p>
-<pre><code class="language-bash">$ git checkout testnet_boole
+<pre><code class="language-bash">$ git fetch origin
+$ git checkout -t origin/testnet_boole
 $ ./scripts/deploy-validator.sh linera.mydomain.com
 </code></pre>
 <p>The public key will be printed after the command has finished executing, for
