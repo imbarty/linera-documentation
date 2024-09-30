@@ -254,7 +254,7 @@ only on the microchain that created the application.</p>
 the state if the state uses the view paradigm.</p>
 <p>For our example application, we'll want to initialize the state of the
 application to an arbitrary number that can be specified on application creation
-using its instatiation parameters:</p>
+using its instantiation parameters:</p>
 <pre><code class="language-rust ignore">    async fn instantiate(&amp;mut self, value: u64) {
         self.state.value.set(value);
     }</code></pre>

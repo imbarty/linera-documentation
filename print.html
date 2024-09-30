@@ -325,7 +325,7 @@ chain is automatically added to the newly instantiated wallet.</p>
 <h2 id="starting-a-local-test-network"><a class="header" href="#starting-a-local-test-network">Starting a Local Test Network</a></h2>
 <p>Another option is to start your own local development network. A development
 network consists of a number of <a href="developers/getting_started/../advanced_topics/validators.html">validators</a>,
-each of which consist of an ingress proxy (aka. a "load balancer") and a number
+each of which consists of an ingress proxy (aka. a "load balancer") and a number
 of workers (aka. "physical shards").</p>
 <p>To start a local network, run the following command:</p>
 <pre><code class="language-bash">linera net up
@@ -583,7 +583,7 @@ Blob storage usable by system and user applications
 Support for easy onboarding of user chains into a new application
 (removing the need to accept requests)</li>
 <li><input disabled="" type="checkbox"/>
-Replace pub/sub channels by data streams (removing the need to accept
+Replace pub/sub channels with data streams (removing the need to accept
 subscriptions)</li>
 <li><input disabled="" type="checkbox"/>
 Allow chain clients to control which chains they track (lazily/actively)
@@ -1347,7 +1347,7 @@ only on the microchain that created the application.</p>
 the state if the state uses the view paradigm.</p>
 <p>For our example application, we'll want to initialize the state of the
 application to an arbitrary number that can be specified on application creation
-using its instatiation parameters:</p>
+using its instantiation parameters:</p>
 <pre><code class="language-rust ignore">    async fn instantiate(&amp;mut self, value: u64) {
         self.state.value.set(value);
     }</code></pre>
@@ -2228,9 +2228,9 @@ validators, it becomes impossible to collect a quorum of votes for either block.
 <p>In the future, we anticipate that most users will use <em>permissioned chains</em> even
 if they are the only owners of their chains. Permissioned chains have two
 confirmation steps instead of one, but it is not possible to accidentally make a
-chain unextendable. They also allow users to delegate certain admistrative tasks
-to third-parties, notably to help with epoch changes (i.e. when the validators
-change if reconfigured).</p>
+chain unextendable. They also allow users to delegate certain administrative
+tasks to third-parties, notably to help with epoch changes (i.e. when the
+validators change if reconfigured).</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="applications-that-handle-assets"><a class="header" href="#applications-that-handle-assets">Applications that Handle Assets</a></h1>
 <p>In general, if you send tokens to a chain owned by someone else, you rely on
 them for asset availability: if they don't handle your messages, you don't have
