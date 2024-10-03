@@ -197,8 +197,26 @@ Public Key: 92f934525762a9ed99fcc3e3d3e35a825235dae133f2682b78fe22a742bac196
 <p>The public key, in this case beginning with <code>92f</code>, must be communicated to the
 Linera Protocol core team along with the chosen host name for onboarding in the
 next epoch.</p>
-<p>For a more bespoke deployment, refer to the manual installation instrucitons
+<p>For a more bespoke deployment, refer to the manual installation instructions
 below.</p>
+<blockquote>
+<p>Note: If you have previously deployed a validator you may need to remove old
+docker volumes (<code>docker_linera-scylla-data</code> and <code>docker_linera-shared</code>).</p>
+</blockquote>
+<h3 id="verifying-installation"><a class="header" href="#verifying-installation">Verifying installation</a></h3>
+<p>To verify the installation, you can use the <code>query-validator</code> command. For
+example:</p>
+<pre><code>$ linera wallet init --with-new-chain --faucet https://faucet.testnet-boole.linera.net
+$ linera query-validator grpcs:my-domain.com:443
+
+RPC API hash: kd/Ru73B4ZZjXYkFqqSzoWzqpWi+NX+8IJLXOODjSko
+GraphQL API hash: eZqzuBlLT0bcoQUjOCPf2j22NfZUWG95id4pdlUmhgs
+WIT API hash: 4/gsw8G+47OUoEWK6hJRGt9R69RanU/OidmX7OKhqfk
+Source code: https://github.com/linera-io/linera-protocol/tree/
+
+0cd20d06af5262540535347d4cc6e5952a921d1a6a7f6dd0982159c9311cfb3e
+</code></pre>
+<p>The last line is the hash of the network's genesis configuration.</p>
 <h2 id="manual-installation"><a class="header" href="#manual-installation">Manual Installation</a></h2>
 <p>This section covers everything you need to install to run a Linera validator
 node with Docker Compose.</p>
