@@ -238,7 +238,7 @@ section, we use the following code:</p>
 <pre><code class="language-rust ignore">    async fn handle_query(&amp;mut self, request: Request) -&gt; Response {
         let schema = Schema::build(
             // implemented in the next section
-            QueryRoot { value: *self.value.get() },
+            QueryRoot { value: *self.state.value.get() },
             // implemented in the next section
             MutationRoot {},
             EmptySubscription,
