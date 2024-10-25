@@ -176,6 +176,65 @@
                         <h1 id="joining-an-existing-testnet"><a class="header" href="#joining-an-existing-testnet">Joining an Existing Testnet</a></h1>
 <p>In this section, we use Docker Compose to run a validator and join an existing
 Testnet.</p>
+<h2 id="infrastructure-requirements"><a class="header" href="#infrastructure-requirements">Infrastructure Requirements</a></h2>
+<p>Validators run via Docker Compose do not come with a pre-packaged load balancer
+to perform TLS termination (unlike validators running on Kubernetes).</p>
+<p>The load balancer configuration <strong>must</strong> have the following properties:</p>
+<ol>
+<li>Support HTTP/2 connections.</li>
+<li>Support gRPC connections.</li>
+<li>Support long-lived HTTP/2 connections.</li>
+<li>Support a maximum body size of up to 20 MB.</li>
+<li>Provide TLS termination with a certificate signed by a known CA.</li>
+</ol>
+<p>Finally, the load balancer that performs TLS termination must redirect traffic
+from <code>443</code> to <code>19100</code> (the port exposed by the proxy).</p>
+<h3 id="using-nginx"><a class="header" href="#using-nginx">Using Nginx</a></h3>
+<p>Minimum supported version: 1.18.0.</p>
+<p>Below is an example Nginx configuration which upholds the infrastructure
+requirements found in <code>/etc/nginx/sites-available/default</code>:</p>
+<pre><code>server {
+        listen 80 http2;
+
+        location / {
+                grpc_pass grpc://127.0.0.1:19100;
+        }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name &lt;hostname&gt;; # e.g. my-subdomain.my-domain.net
+
+    # SSL certificates
+    ssl_certificate &lt;ssl-cert-path&gt;; # e.g. /etc/letsencrypt/live/my-subdomain.my-domain.net/fullchain.pem
+    ssl_certificate_key &lt;ssl-key-path&gt;; # e.g. /etc/letsencrypt/live/my-subdomain.my-domain.net/privkey.pem;
+
+    # Proxy traffic to the service running on port 19100.
+    location / {
+        grpc_pass grpc://127.0.0.1:19100;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    keepalive_timeout 10m 60s;
+    grpc_read_timeout 10m;
+    grpc_send_timeout 10m;
+
+    client_header_timeout 10m;
+    client_body_timeout 10m;
+}
+</code></pre>
+<h3 id="scylladb-configuration"><a class="header" href="#scylladb-configuration">ScyllaDB Configuration</a></h3>
+<p>ScyllaDB is an open-source distributed NoSQL database built for high-performance
+and low-latency. Linera validators use ScyllaDB as their persistenct storage.</p>
+<p>ScyllaDB may require kernel parameters to be modified in order to work.
+Specifically the the number of events allowed in asynchronous I/O contexts.</p>
+<p>To set this run:</p>
+<pre><code class="language-bash">echo 1048576 &gt; /proc/sys/fs/aio-max-nr
+</code></pre>
 <h2 id="one-click-deploy"><a class="header" href="#one-click-deploy">One-Click Deploy</a></h2>
 <blockquote>
 <p>Note: This section was only tested under Linux.</p>
@@ -239,19 +298,6 @@ to run the Docker Compose validator service.</p>
 <h2 id="setting-up-a-linera-validator"><a class="header" href="#setting-up-a-linera-validator">Setting up a Linera Validator</a></h2>
 <p>For the next section, we'll be working out of the <code>docker</code> subdirectory in the
 <code>linera-protocol</code> repository.</p>
-<h3 id="infrastructure-configuration"><a class="header" href="#infrastructure-configuration">Infrastructure Configuration</a></h3>
-<p>Validators run via Docker Compose do not come with a pre-packaged load balancer
-to perform TLS termination (unlike validators running on Kubernetes).</p>
-<p>The load balancer configuration <strong>must</strong> have the following properties:</p>
-<ol>
-<li>Support HTTP/2 connections.</li>
-<li>Support gRPC connections.</li>
-<li>Support long-lived HTTP/2 connections.</li>
-<li>Support a maximum body size of up to 20 MB.</li>
-<li>Provide TLS termination with a certificate signed by a known CA.</li>
-</ol>
-<p>Finally, the load balancer that performs TLS termination must redirect traffic
-from <code>443</code> to <code>19100</code> (the port exposed by the proxy).</p>
 <h3 id="creating-your-validator-configuration"><a class="header" href="#creating-your-validator-configuration">Creating your Validator Configuration</a></h3>
 <p>Validators are configured using a TOML file. You can use the following template
 to set up you own validator configuration:</p>
