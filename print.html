@@ -2635,11 +2635,11 @@ branch <code>testnet_archimedes</code> you can run
 <p>For example:</p>
 <pre><code class="language-bash">$ git fetch origin
 $ git checkout -t origin/testnet_archimedes
-$ ./scripts/deploy-validator.sh linera.mydomain.com
+$ scripts/deploy-validator.sh linera.mydomain.com
 </code></pre>
 <p>The public key will be printed after the command has finished executing, for
 example:</p>
-<pre><code class="language-bash">$ ./scripts/deploy-validator.sh linera.mydomain.com
+<pre><code class="language-bash">$ scripts/deploy-validator.sh linera.mydomain.com
 ...
 Public Key: 92f934525762a9ed99fcc3e3d3e35a825235dae133f2682b78fe22a742bac196
 </code></pre>
@@ -2749,7 +2749,7 @@ traffic from existing users.</p>
 <h3 id="building-the-linera-docker-image"><a class="header" href="#building-the-linera-docker-image">Building the Linera Docker image</a></h3>
 <p>To build the Linera Docker image, run the following command from the root of the
 <code>linera-protocol</code> repository:</p>
-<pre><code class="language-bash">docker build -f docker/Dockerfile . -t linera
+<pre><code class="language-bash">docker build --build-arg git_commit="$(git rev-parse --short HEAD)" -f docker/Dockerfile . -t linera
 </code></pre>
 <p>This can take several minutes.</p>
 <h3 id="running-a-validator-node"><a class="header" href="#running-a-validator-node">Running a Validator Node</a></h3>
