@@ -2603,6 +2603,20 @@ server {
     client_body_timeout 10m;
 }
 </code></pre>
+<h3 id="using-caddy"><a class="header" href="#using-caddy">Using Caddy</a></h3>
+<p>Minimum supported version: v2.4.3</p>
+<p>Below is an example Caddy configuration which upholds the infrastructure
+requirements found in <code>/etc/caddy/Caddyfile</code>:</p>
+<pre><code>example.com {
+  reverse_proxy localhost:19100 {
+    transport http {
+      versions h2c
+      read_timeout 10m
+      write_timeout 10m
+    }
+  }
+}
+</code></pre>
 <h3 id="scylladb-configuration"><a class="header" href="#scylladb-configuration">ScyllaDB Configuration</a></h3>
 <p>ScyllaDB is an open-source distributed NoSQL database built for high-performance
 and low-latency. Linera validators use ScyllaDB as their persistenct storage.</p>
