@@ -31,15 +31,17 @@
 
         <!-- Custom theme stylesheets -->
 
-    </head>
-    <body>
-    <div id="body-container">
+
         <!-- Provide site root to javascript -->
         <script>
             var path_to_root = "";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
-
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -86,7 +88,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
-            <div class="sidebar-scrollbox"></div>
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
             </noscript>
@@ -94,8 +96,6 @@
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
-
-        <script async src="toc.js"></script>
 
         <div id="page-wrapper" class="page-wrapper">
 
@@ -911,7 +911,7 @@ the output of <code>linera net helper</code> to your <code>~/.bash_profile</code
 terminal. However, the client also acts as a node which:</p>
 <ol>
 <li>Executes blocks</li>
-<li>Exposes an GraphQL API and IDE for dynamically interacting with applications
+<li>Exposes a GraphQL API and IDE for dynamically interacting with applications
 and the system</li>
 <li>Listens for notifications from validators and automatically updates local
 chains.</li>
@@ -1846,7 +1846,7 @@ data types whose entries are views.</p>
 consequence we need a tool for working with persistent storage and so we have
 added <code>linera-db</code> for that purpose.</p>
 <h2 id="available-persistent-storage"><a class="header" href="#available-persistent-storage">Available persistent storage</a></h2>
-<p>The persistent storage that are available right now are <code>RocksDB</code>, <code>DynamoDB</code>
+<p>The persistent storage that is available right now includes <code>RocksDB</code>, <code>DynamoDB</code>,
 and <code>ScyllaDB</code>. Each has its own strengths and weaknesses.</p>
 <ul>
 <li>
