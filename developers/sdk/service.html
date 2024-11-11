@@ -202,7 +202,7 @@ impl Service for CounterService {
 the <code>Service</code> trait. The constructor receives the runtime handle and should use
 it to load the application state:</p>
 <pre><code class="language-rust ignore">    async fn load(runtime: ServiceRuntime&lt;Self&gt;) -&gt; Self {
-        let state = Counter::load(ViewStorageContext::from(runtime.key_value_store()))
+        let state = Counter::load(runtime.root_view_storage_context())
             .await
             .expect("Failed to load state");
         Ok(CounterService { state })

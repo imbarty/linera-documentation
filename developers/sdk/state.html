@@ -153,41 +153,49 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="creating-the-application-state"><a class="header" href="#creating-the-application-state">Creating the Application State</a></h1>
-<p>The <code>struct</code> which defines your application's state can be found in
-<code>src/state.rs</code>. An application state is the data that is persisted on storage
+<p>The state of a Linera application consists of onchain data that are persisted
 between transactions.</p>
-<p>To represent our counter, we're going to need a single <code>u64</code>. To persist the
-counter we'll be using Linera's <a href="../advanced_topics/views.html">view</a> paradigm.</p>
-<p>Views are a little like an
-<a href="https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping">ORM</a>, however
-instead of mapping data structures to a relational database like Postgres, they
-are instead mapped onto key-value stores like <a href="https://rocksdb.org/">RocksDB</a>.</p>
-<p>In vanilla Rust, we might represent our Counter as so:</p>
-<pre><code class="language-rust ignore">// do not use this
-struct Counter {
+<p>The <code>struct</code> which defines your application's state can be found in
+<code>src/state.rs</code>. To represent our counter, we're going to use a <code>u64</code> integer.</p>
+<p>While we could use a plain data-structure for the entire application state:</p>
+<pre><code class="language-rust ignore">struct Counter {
   value: u64
 }</code></pre>
-<p>However, to persist your data, you'll need to replace the existing <code>Application</code>
-state struct in <code>src/state.rs</code> with the following view:</p>
+<p>in general, we prefer to manage persistent data using the concept of "views":</p>
+<blockquote>
+<p><a href="https://docs.rs/linera-views/latest/linera_views/">Views</a> allow an
+application to load persistent data in memory and stage modifications in a
+flexible way.</p>
+<p>Views resemble the persistent objects of an
+<a href="https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping">ORM</a>
+framework, except that they are stored as a set of key-value pairs (instead of
+a SQL row).</p>
+</blockquote>
+<p>In this case, the placeholder <code>Application</code> struct in <code>src/state.rs</code> should be
+replaced by</p>
 <pre><code class="language-rust ignore">/// The application state.
 #[derive(RootView, async_graphql::SimpleObject)]
 #[view(context = "ViewStorageContext")]
 pub struct Counter {
     pub value: RegisterView&lt;u64&gt;,
+    // Additional fields here will get their own key in storage.
 }</code></pre>
-<p>and all other occurrences of <code>Application</code> in your app.</p>
-<p>The <code>RegisterView&lt;T&gt;</code> supports modifying a single value of type <code>T</code>. There are
-different types of views for different use-cases, but the majority of common
-data structures have already been implemented:</p>
+<p>and the occurrences of <code>Application</code> in the rest of the project should be
+replaced by <code>Counter</code>.</p>
+<p>The derive macro <code>async_graphql::SimpleObject</code> is related to GraphQL queries
+discussed in the <a href="service.html">next section</a>.</p>
+<p>A <code>RegisterView&lt;T&gt;</code> supports modifying a single value of type <code>T</code>. Other data
+structures available in the library
+<a href="https://docs.rs/linera-views/latest/linera_views/"><code>linera_views</code></a> include:</p>
 <ul>
-<li>A <code>Vec</code> or <code>VecDeque</code> corresponds to a <code>LogView</code></li>
-<li>A <code>BTreeMap</code> corresponds to a <code>MapView</code> if its values are primitive, or to
-<code>CollectionView</code> if its values are other views;</li>
-<li>A <code>Queue</code> corresponds to a <code>QueueView</code></li>
+<li><code>LogView</code> for a growing vector of values;</li>
+<li><code>QueueView</code> for queues;</li>
+<li><code>MapView</code> and <code>CollectionView</code> for associative maps; specifically, <code>MapView</code>
+in the case of static values, and <code>CollectionView</code> when values are other
+views.</li>
 </ul>
-<p>For an exhaustive list refer to the Views
-<a href="../advanced_topics/views.html">documentation</a>.</p>
-<p>Finally, run <code>cargo check</code> to ensure that your changes compile.</p>
+<p>For an exhaustive list of the different constructions, refer to the crate
+<a href="https://docs.rs/linera-views/latest/linera_views/">documentation</a>.</p>
 
                     </main>
 

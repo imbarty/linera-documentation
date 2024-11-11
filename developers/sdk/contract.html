@@ -207,7 +207,7 @@ contract can use, and should use it to load the application state. For our
 implementation, we will load the state and create the <code>CounterContract</code>
 instance:</p>
 <pre><code class="language-rust ignore">    async fn load(runtime: ContractRuntime&lt;Self&gt;) -&gt; Self {
-        let state = Counter::load(ViewStorageContext::from(runtime.key_value_store()))
+        let state = Counter::load(runtime.root_view_storage_context())
             .await
             .expect("Failed to load state");
         CounterContract { state, runtime }

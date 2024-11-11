@@ -180,7 +180,7 @@ impl Contract for MyContract {
     type Parameters = ();
 
     async fn load(runtime: ContractRuntime&lt;Self&gt;) -&gt; Self {
-        let state = MyState::load(ViewStorageContext::from(runtime.key_value_store()))
+        let state = MyState::load(runtime.root_view_storage_context())
             .await
             .expect("Failed to load state");
 
@@ -232,7 +232,7 @@ impl Contract for MyContract {
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../developers/advanced_topics/persistent_storage.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../developers/advanced_topics.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -246,7 +246,7 @@ impl Contract for MyContract {
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../developers/advanced_topics/persistent_storage.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../developers/advanced_topics.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 

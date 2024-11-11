@@ -1150,41 +1150,49 @@ a prefix for names of <code>trait</code>, <code>struct</code>, etc. Hence, in th
 we will use <code>CounterContract</code>, <code>CounterService</code>, etc.</p>
 </blockquote>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="creating-the-application-state"><a class="header" href="#creating-the-application-state">Creating the Application State</a></h1>
-<p>The <code>struct</code> which defines your application's state can be found in
-<code>src/state.rs</code>. An application state is the data that is persisted on storage
+<p>The state of a Linera application consists of onchain data that are persisted
 between transactions.</p>
-<p>To represent our counter, we're going to need a single <code>u64</code>. To persist the
-counter we'll be using Linera's <a href="developers/sdk/../advanced_topics/views.html">view</a> paradigm.</p>
-<p>Views are a little like an
-<a href="https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping">ORM</a>, however
-instead of mapping data structures to a relational database like Postgres, they
-are instead mapped onto key-value stores like <a href="https://rocksdb.org/">RocksDB</a>.</p>
-<p>In vanilla Rust, we might represent our Counter as so:</p>
-<pre><code class="language-rust ignore">// do not use this
-struct Counter {
+<p>The <code>struct</code> which defines your application's state can be found in
+<code>src/state.rs</code>. To represent our counter, we're going to use a <code>u64</code> integer.</p>
+<p>While we could use a plain data-structure for the entire application state:</p>
+<pre><code class="language-rust ignore">struct Counter {
   value: u64
 }</code></pre>
-<p>However, to persist your data, you'll need to replace the existing <code>Application</code>
-state struct in <code>src/state.rs</code> with the following view:</p>
+<p>in general, we prefer to manage persistent data using the concept of "views":</p>
+<blockquote>
+<p><a href="https://docs.rs/linera-views/latest/linera_views/">Views</a> allow an
+application to load persistent data in memory and stage modifications in a
+flexible way.</p>
+<p>Views resemble the persistent objects of an
+<a href="https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping">ORM</a>
+framework, except that they are stored as a set of key-value pairs (instead of
+a SQL row).</p>
+</blockquote>
+<p>In this case, the placeholder <code>Application</code> struct in <code>src/state.rs</code> should be
+replaced by</p>
 <pre><code class="language-rust ignore">/// The application state.
 #[derive(RootView, async_graphql::SimpleObject)]
 #[view(context = "ViewStorageContext")]
 pub struct Counter {
     pub value: RegisterView&lt;u64&gt;,
+    // Additional fields here will get their own key in storage.
 }</code></pre>
-<p>and all other occurrences of <code>Application</code> in your app.</p>
-<p>The <code>RegisterView&lt;T&gt;</code> supports modifying a single value of type <code>T</code>. There are
-different types of views for different use-cases, but the majority of common
-data structures have already been implemented:</p>
+<p>and the occurrences of <code>Application</code> in the rest of the project should be
+replaced by <code>Counter</code>.</p>
+<p>The derive macro <code>async_graphql::SimpleObject</code> is related to GraphQL queries
+discussed in the <a href="developers/sdk/service.html">next section</a>.</p>
+<p>A <code>RegisterView&lt;T&gt;</code> supports modifying a single value of type <code>T</code>. Other data
+structures available in the library
+<a href="https://docs.rs/linera-views/latest/linera_views/"><code>linera_views</code></a> include:</p>
 <ul>
-<li>A <code>Vec</code> or <code>VecDeque</code> corresponds to a <code>LogView</code></li>
-<li>A <code>BTreeMap</code> corresponds to a <code>MapView</code> if its values are primitive, or to
-<code>CollectionView</code> if its values are other views;</li>
-<li>A <code>Queue</code> corresponds to a <code>QueueView</code></li>
+<li><code>LogView</code> for a growing vector of values;</li>
+<li><code>QueueView</code> for queues;</li>
+<li><code>MapView</code> and <code>CollectionView</code> for associative maps; specifically, <code>MapView</code>
+in the case of static values, and <code>CollectionView</code> when values are other
+views.</li>
 </ul>
-<p>For an exhaustive list refer to the Views
-<a href="developers/sdk/../advanced_topics/views.html">documentation</a>.</p>
-<p>Finally, run <code>cargo check</code> to ensure that your changes compile.</p>
+<p>For an exhaustive list of the different constructions, refer to the crate
+<a href="https://docs.rs/linera-views/latest/linera_views/">documentation</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="defining-the-abi"><a class="header" href="#defining-the-abi">Defining the ABI</a></h1>
 <p>The Application Binary Interface (ABI) of a Linera application defines how to
 interact with this application from other parts of the system. It includes the
@@ -1307,7 +1315,7 @@ contract can use, and should use it to load the application state. For our
 implementation, we will load the state and create the <code>CounterContract</code>
 instance:</p>
 <pre><code class="language-rust ignore">    async fn load(runtime: ContractRuntime&lt;Self&gt;) -&gt; Self {
-        let state = Counter::load(ViewStorageContext::from(runtime.key_value_store()))
+        let state = Counter::load(runtime.root_view_storage_context())
             .await
             .expect("Failed to load state");
         CounterContract { state, runtime }
@@ -1404,7 +1412,7 @@ impl Service for CounterService {
 the <code>Service</code> trait. The constructor receives the runtime handle and should use
 it to load the application state:</p>
 <pre><code class="language-rust ignore">    async fn load(runtime: ServiceRuntime&lt;Self&gt;) -&gt; Self {
-        let state = Counter::load(ViewStorageContext::from(runtime.key_value_store()))
+        let state = Counter::load(runtime.root_view_storage_context())
             .await
             .expect("Failed to load state");
         Ok(CounterService { state })
@@ -1765,7 +1773,7 @@ mod tests {
         // Check that the state in memory is different from the state in storage
         assert_ne!(
             contract.state,
-            ApplicationState::load(ViewStorageContext::from(runtime.key_value_store()))
+            ApplicationState::load(runtime.root_view_storage_context())
         );
     }
 }</code></pre>
@@ -1809,100 +1817,6 @@ async fn test_cross_chain_message() {
 }</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="advanced-topics"><a class="header" href="#advanced-topics">Advanced Topics</a></h1>
 <p>In this section, we present additional topics related to the Linera protocol.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="views"><a class="header" href="#views">Views</a></h1>
-<blockquote>
-<p>Views are a specific functionality of the Linera system that allow to have
-data in memory and then seamlessly flush it to an underlying persistent
-datastore.</p>
-</blockquote>
-<p>The <a href="https://docs.rs/linera-views/latest/linera_views/">full documentation</a> is
-available on the crate documentation with all functions having examples.</p>
-<p>Concretely, what is provided is the following:</p>
-<ul>
-<li>
-<p>A trait <code>View</code> that provides <code>load</code>, <code>rollback</code>, <code>clear</code>, <code>flush</code>, <code>delete</code>.
-The idea is that we can do operation on the data and then flush it to the
-database storing them.</p>
-</li>
-<li>
-<p>Several other traits <code>HashableView</code>, <code>RootView</code>, <code>CryptoHashView</code>,
-<code>CryptoHashRootView</code> that are important for computing hash.</p>
-</li>
-<li>
-<p>A number of standard containers: <code>MapView</code>, <code>SetView</code>, <code>LogView</code>, <code>QueueView</code>,
-<code>RegisterView</code> that implement the <code>View</code> and <code>HashableView</code> traits.</p>
-</li>
-<li>
-<p>Two containers <code>CollectionView</code> and <code>ReentrantCollectionView</code> that are similar
-to <code>MapView</code> but whose values are views themselves.</p>
-</li>
-<li>
-<p>Derive macros that allow to implement the above mentioned traits on struct
-data types whose entries are views.</p>
-</li>
-</ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="persistent-storage"><a class="header" href="#persistent-storage">Persistent storage</a></h1>
-<p>Validators run the servers and the data is stored in persistent storage. As a
-consequence we need a tool for working with persistent storage and so we have
-added <code>linera-db</code> for that purpose.</p>
-<h2 id="available-persistent-storage"><a class="header" href="#available-persistent-storage">Available persistent storage</a></h2>
-<p>The persistent storage that is available right now includes <code>RocksDB</code>,
-<code>DynamoDB</code>, and <code>ScyllaDB</code>. Each has its own strengths and weaknesses.</p>
-<ul>
-<li>
-<p><a href="https://rocksdb.org/"><code>RocksDB</code></a>: Data is stored on disk and cannot be shared
-between shards but is very fast.</p>
-</li>
-<li>
-<p><a href="https://aws.amazon.com/dynamodb/"><code>DynamoDB</code></a>: Data is stored on a remote
-storage, that has to be on AWS. Data can be shared between shards.</p>
-</li>
-<li>
-<p><a href="https://www.scylladb.com/"><code>ScyllaDB</code></a>: Data is stored on a remote storage.
-Data can be shared between shards.</p>
-</li>
-</ul>
-<p>There is no fundamental obstacle to the addition of other persistent storage
-solutions.</p>
-<p>In addition, the <code>DynamoDB</code> and <code>ScyllaDB</code> have the notion of a table which
-means that a given remote location can be used for several completely
-independent purposes.</p>
-<h2 id="the-linera-db-tool"><a class="header" href="#the-linera-db-tool">The <code>linera-db</code> tool</a></h2>
-<p>When operating on a persistent storage some global operations can be required.
-The command line tool <code>linera-db</code> helps in making them work.</p>
-<p>The functionalities are the following:</p>
-<ul>
-<li>
-<p><code>list_tables</code>(<code>DynamoDB</code> and <code>ScyllaDB</code>): It lists all the tables that have
-been created on the persistent storage</p>
-</li>
-<li>
-<p><code>initialize</code>(<code>RocksDB</code>, <code>DynamoDB</code> and <code>ScyllaDB</code>): It initializes a
-persistent storage.</p>
-</li>
-<li>
-<p><code>check_existence</code>(<code>RocksDB</code>, <code>DynamoDB</code> and <code>ScyllaDB</code>): It tests the
-existence of a persistent storage. If the error code is 0 then the table
-exists, if the error code is 1 then the table is absent.</p>
-</li>
-<li>
-<p><code>check_absence</code>(<code>RocksDB</code>, <code>DynamoDB</code> and <code>ScyllaDB</code>): It tests the absence of
-a persistent storage. If the error code is 0 then the table is absent, if the
-error code is 1 then the table does not exist.</p>
-</li>
-<li>
-<p><code>delete_all</code>(<code>RocksDB</code>, <code>DynamoDB</code> and <code>ScyllaDB</code>): It deletes all the table
-of a persistent storage.</p>
-</li>
-<li>
-<p><code>delete_single</code>(<code>DynamoDB</code> and <code>ScyllaDB</code>): It deletes a single table of a
-persistent storage.</p>
-</li>
-</ul>
-<p>If some error occurs during the operation, then the error code 2 is returned and
-0 if everything went fine with the exception of <code>check_existence</code> and
-<code>check_absence</code> for which the value 1 can occur if the connection with the
-database was established correctly but the result is not what we expected.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="contract-finalization"><a class="header" href="#contract-finalization">Contract Finalization</a></h1>
 <p>When a transaction finishes executing successfully, there's a final step where
 all loaded application contracts have their <code>Contract::store</code> implementation
@@ -1931,7 +1845,7 @@ impl Contract for MyContract {
     type Parameters = ();
 
     async fn load(runtime: ContractRuntime&lt;Self&gt;) -&gt; Self {
-        let state = MyState::load(ViewStorageContext::from(runtime.key_value_store()))
+        let state = MyState::load(runtime.root_view_storage_context())
             .await
             .expect("Failed to load state");
 
