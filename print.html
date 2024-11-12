@@ -166,12 +166,12 @@ applications using the Linera Rust SDK.</li>
 run Linera validators.</li>
 </ol>
 <blockquote>
-<p><strong>NEW: Publish and test your Web3 application on the Linera Devnet!</strong></p>
+<p><strong>NEW: Publish and test your Web3 application on the Linera Testnet!</strong></p>
 <p>Install
 <a href="developers/getting_started/installation.html#installing-from-cratesio">the Linera CLI tool</a>
 then follow the instructions on
-<a href="developers/getting_started/hello_linera.html#using-the-devnet">this page</a> to
-claim a microchain and publish your first application on the current Devnet.</p>
+<a href="developers/getting_started/hello_linera.html#using-the-testnet">this page</a> to
+claim a microchain and publish your first application on the current Testnet.</p>
 </blockquote>
 <p>To join our community and get involved in the development of the Linera
 ecosystem, check out our
@@ -250,19 +250,20 @@ profile = "minimal"
 </code></pre>
 <h2 id="installing-from-cratesio"><a class="header" href="#installing-from-cratesio">Installing from crates.io</a></h2>
 <p>You may install the Linera binaries with</p>
-<pre><code class="language-bash">cargo install --locked linera-storage-service@0.13.0
-cargo install --locked linera-service@0.13.0 --features storage-service
+<pre><code class="language-bash">cargo install --locked linera-storage-service@0.13.1
+cargo install --locked linera-service@0.13.1 --features storage-service
 </code></pre>
 <p>and use <code>linera-sdk</code> as a library for Linera Wasm applications:</p>
-<pre><code class="language-bash">cargo add linera-sdk@0.13.0
+<pre><code class="language-bash">cargo add linera-sdk@0.13.1
 </code></pre>
-<p>The version number <code>0.13.0</code> corresponds to the
-current Devnet of Linera and may change frequently.</p>
+<p>The version number <code>0.13.1</code> corresponds to the
+current Testnet of Linera. The minor version may change frequently but should
+not induce breaking changes.</p>
 <h2 id="installing-from-github"><a class="header" href="#installing-from-github">Installing from GitHub</a></h2>
 <p>Download the source from <a href="https://github.com/linera-io/linera-protocol">GitHub</a>:</p>
 <pre><code class="language-bash">git clone https://github.com/linera-io/linera-protocol.git
 cd linera-protocol
-git checkout -t origin/devnet_2024_10_21  # Current release branch
+git checkout -t origin/testnet_archimedes  # Current release branch
 </code></pre>
 <p>To install the Linera toolchain locally from source, you may run:</p>
 <pre><code class="language-bash">cargo install --locked --path linera-storage-service
@@ -272,7 +273,7 @@ cargo install --locked --path linera-service --features storage-service
 compiled in debug mode, e.g. using <code>export PATH="$PWD/target/debug:$PATH"</code>.</p>
 <p>This manual was tested against the following commit of the
 <a href="https://github.com/linera-io/linera-protocol">repository</a>:</p>
-<pre><code class="language-text">eec186d3c9bd76c4f6a6b0b393503a12bf281f11
+<pre><code class="language-text">f84b66720b92b2eab86622e26b56c3aa2adbc0c0
 </code></pre>
 <h2 id="bash-helper-optional"><a class="header" href="#bash-helper-optional">Bash helper (optional)</a></h2>
 <p>Consider adding the output of <code>linera net helper</code> to your <code>~/.bash_profile</code> to
@@ -283,25 +284,31 @@ help with <a href="developers/getting_started/../core_concepts/wallets.html#auto
 <a href="https://github.com/linera-io/linera-protocol/issues/new">create an issue</a> on
 GitHub.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="hello-linera"><a class="header" href="#hello-linera">Hello, Linera</a></h1>
-<p>This section is about interacting with the Devnet, running a local development
-network, then compiling and deploying your first application from scratch.</p>
-<p>By the end of this section, you'll have a
-<a href="developers/getting_started/../core_concepts/microchains.html">microchain</a> on the Devnet and/or on your local
-network, and a working application that can be queried using GraphQL.</p>
-<h2 id="using-the-devnet"><a class="header" href="#using-the-devnet">Using the Devnet</a></h2>
-<p>The Linera Devnet is a deployment of the Linera protocol that's useful for
-developers. It should not be considered stable, and can be restarted from a
-clean slate and new genesis at any time.</p>
-<p>To interact with the Devnet, some tokens are needed. A Faucet service is
+<p>In this section, you will learn how to interact with the current Testnet, run a
+local development network, then compile and deploy your first application from
+scratch.</p>
+<p>By the end of this section, you will have a
+<a href="developers/getting_started/../core_concepts/microchains.html">microchain</a> on the Testnet and/or on your
+local network, and a working application that can be queried using GraphQL.</p>
+<h2 id="using-the-testnet"><a class="header" href="#using-the-testnet">Using the Testnet</a></h2>
+<p>The Linera Testnet is a deployment of the Linera protocol useful for developers
+and able to host applications.</p>
+<blockquote>
+<p>The current Testnet (codename "Archimedes") is the first deployment of Linera
+run in partnership with external validators. While it should be considered
+stable, it will be replaced by a new Testnet when needed. The next Linera
+Testnet will be restarted from a clean slate and a new genesis block.</p>
+</blockquote>
+<p>To interact with the Testnet, some tokens are needed. A Faucet service is
 available to create new microchains and obtain some test tokens. To do so, this
 must be configured when initializing the wallet:</p>
-<pre><code class="language-bash">linera wallet init --with-new-chain --faucet https://faucet.devnet-2024-10-21.linera.net
+<pre><code class="language-bash">linera wallet init --with-new-chain --faucet https://faucet.testnet-archimedes.linera.net
 </code></pre>
-<p>This creates a new microchain on Devnet with some initial test tokens, and the
+<p>This creates a new microchain on Testnet with some initial test tokens, and the
 chain is automatically added to the newly instantiated wallet.</p>
 <blockquote>
 <p>Make sure to use a Linera toolchain
-<a href="developers/getting_started/installation.html#installing-from-cratesio">compatible with the current Devnet</a>.</p>
+<a href="developers/getting_started/installation.html#installing-from-cratesio">compatible with the current Testnet</a>.</p>
 </blockquote>
 <h2 id="starting-a-local-test-network"><a class="header" href="#starting-a-local-test-network">Starting a Local Test Network</a></h2>
 <p>Another option is to start your own local development network. A development
@@ -1292,7 +1299,7 @@ trait for it, which is as follows:</p>
     async fn store(self);
 }</code></pre>
 <p>The full trait definition can be found
-<a href="https://github.com/linera-io/linera-protocol/blob/eec186d3c9bd76c4f6a6b0b393503a12bf281f11/linera-sdk/src/lib.rs">here</a>.</p>
+<a href="https://github.com/linera-io/linera-protocol/blob/f84b66720b92b2eab86622e26b56c3aa2adbc0c0/linera-sdk/src/lib.rs">here</a>.</p>
 <p>There's quite a bit going on here, so let's break it down and take one method at
 a time.</p>
 <p>For this application, we'll be using the <code>load</code>, <code>execute_operation</code> and <code>store</code>
@@ -1384,7 +1391,7 @@ that can be made against your application.</p>
     async fn handle_query(&amp;self, query: Self::Query) -&gt; Self::QueryResponse;
 }</code></pre>
 <p>The full service trait definition can be found
-<a href="https://github.com/linera-io/linera-protocol/blob/eec186d3c9bd76c4f6a6b0b393503a12bf281f11/linera-sdk/src/lib.rs">here</a>.</p>
+<a href="https://github.com/linera-io/linera-protocol/blob/f84b66720b92b2eab86622e26b56c3aa2adbc0c0/linera-sdk/src/lib.rs">here</a>.</p>
 <p>Let's implement <code>Service</code> for our counter application.</p>
 <p>First, we create a new type for the service, similarly to the contract:</p>
 <pre><code class="language-rust ignore">pub struct CounterService {
@@ -1469,13 +1476,13 @@ impl MutationRoot {
 }</code></pre>
 <p>We haven't included the imports in the above code; they are left as an exercise
 to the reader (but remember to import <code>async_graphql::Object</code>). If you want the
-full source code and associated tests check out the <a href="https://github.com/linera-io/linera-protocol/blob/eec186d3c9bd76c4f6a6b0b393503a12bf281f11/examples/counter/src/service.rs">examples
+full source code and associated tests check out the <a href="https://github.com/linera-io/linera-protocol/blob/f84b66720b92b2eab86622e26b56c3aa2adbc0c0/examples/counter/src/service.rs">examples
 section</a>
 on GitHub.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="deploying-the-application"><a class="header" href="#deploying-the-application">Deploying the Application</a></h1>
 <p>The first step to deploy your application is to configure a wallet. This will
 determine where the application will be deployed: either to a local net or to
-the devnet.</p>
+the public deployment (i.e. a devnet or a testnet).</p>
 <h2 id="local-net"><a class="header" href="#local-net">Local Net</a></h2>
 <p>To configure the local network, follow the steps in the
 <a href="developers/sdk/../getting_started/hello_linera.html#using-the-initial-test-wallet">Getting Started section</a>.</p>
@@ -1491,10 +1498,10 @@ application while also specifying:</p>
   target/wasm32-unknown-unknown/release/my-counter_{contract,service}.wasm \
   --json-argument "42"
 </code></pre>
-<h2 id="devnet"><a class="header" href="#devnet">Devnet</a></h2>
-<p>To configure the wallet for the devnet while creating a new microchain, the
-following command can be used:</p>
-<pre><code class="language-bash">linera wallet init --with-new-chain --faucet https://faucet.devnet-2024-10-21.linera.net
+<h2 id="devnets-and-testnets"><a class="header" href="#devnets-and-testnets">Devnets and Testnets</a></h2>
+<p>To configure the wallet for the current testnet while creating a new microchain,
+the following command can be used:</p>
+<pre><code class="language-bash">linera wallet init --with-new-chain --faucet https://faucet.testnet-archimedes.linera.net
 </code></pre>
 <p>The Faucet will provide the new chain with some tokens, which can then be used
 to deploy the application with the <code>publish-and-create</code> command. It requires
@@ -1553,7 +1560,7 @@ receiver rejects it. The example below enables both flags:</p>
         .with_authentication()
         .send_to(destination_chain_id);</code></pre>
 <h2 id="example-fungible-token"><a class="header" href="#example-fungible-token">Example: Fungible Token</a></h2>
-<p>In the <a href="https://github.com/linera-io/linera-protocol/tree/eec186d3c9bd76c4f6a6b0b393503a12bf281f11/examples/fungible"><code>fungible</code>
+<p>In the <a href="https://github.com/linera-io/linera-protocol/tree/f84b66720b92b2eab86622e26b56c3aa2adbc0c0/examples/fungible"><code>fungible</code>
 example
 application</a>, such a message
 can be the transfer of tokens from one chain to another. If the sender includes
@@ -1684,9 +1691,9 @@ indirectly by signing her block. The crowd-funding application now makes a note
 in its application state on Bob's chain that Carol has pledged 10 Pugecoin
 tokens.</p>
 <p>For the complete code please take a look at the
-<a href="https://github.com/linera-io/linera-protocol/blob/eec186d3c9bd76c4f6a6b0b393503a12bf281f11/examples/crowd-funding/src/contract.rs"><code>crowd-funding</code></a>
+<a href="https://github.com/linera-io/linera-protocol/blob/f84b66720b92b2eab86622e26b56c3aa2adbc0c0/examples/crowd-funding/src/contract.rs"><code>crowd-funding</code></a>
 and the
-<a href="https://github.com/linera-io/linera-protocol/blob/eec186d3c9bd76c4f6a6b0b393503a12bf281f11/examples/fungible/src/contract.rs"><code>fungible</code></a>
+<a href="https://github.com/linera-io/linera-protocol/blob/f84b66720b92b2eab86622e26b56c3aa2adbc0c0/examples/fungible/src/contract.rs"><code>fungible</code></a>
 application contracts in the <code>examples</code> folder in <code>linera-protocol</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="using-data-blobs"><a class="header" href="#using-data-blobs">Using Data Blobs</a></h1>
 <p>Some applications may want to use static assets, like images or other data: e.g.
@@ -1709,9 +1716,9 @@ still want to make sure that the user has the image locally as soon as they
 receive an NFT, even if they don't view it yet. This can be achieved by calling
 <code>runtime.assert_data_blob_exists(blob_hash)</code> in the contract: It will make sure
 the data is available, without actually loading it.</p>
-<p>For the complete code please take a look at the <a href="https://github.com/linera-io/linera-protocol/blob/eec186d3c9bd76c4f6a6b0b393503a12bf281f11/examples/non-fungible/src/contract.rs"><code>non-fungible</code>
+<p>For the complete code please take a look at the <a href="https://github.com/linera-io/linera-protocol/blob/f84b66720b92b2eab86622e26b56c3aa2adbc0c0/examples/non-fungible/src/contract.rs"><code>non-fungible</code>
 contract</a>
-and <a href="https://github.com/linera-io/linera-protocol/blob/eec186d3c9bd76c4f6a6b0b393503a12bf281f11/examples/non-fungible/src/service.rs">service</a>.</p>
+and <a href="https://github.com/linera-io/linera-protocol/blob/f84b66720b92b2eab86622e26b56c3aa2adbc0c0/examples/non-fungible/src/service.rs">service</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="printing-logs-from-an-application"><a class="header" href="#printing-logs-from-an-application">Printing Logs from an Application</a></h1>
 <p>Applications can use the <a href="https://crates.io/crates/log"><code>log</code> crate</a> to print
 log messages with different levels of importance. Log messages are useful during
@@ -2407,7 +2414,7 @@ profile = "minimal"
 <a href="https://github.com/linera-io/linera-protocol">GitHub</a>):</p>
 <pre><code class="language-bash">git clone https://github.com/linera-io/linera-protocol.git
 cd linera-protocol
-git checkout -t origin/devnet_2024_10_21  # Current release branch
+git checkout -t origin/testnet_archimedes  # Current release branch
 </code></pre>
 <p>and to install the Linera toolchain:</p>
 <pre><code class="language-bash">cargo install --locked --path linera-service --features kubernetes
