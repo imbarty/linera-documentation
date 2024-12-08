@@ -172,7 +172,7 @@ from <code>443</code> to <code>19100</code> (the port exposed by the proxy).</p>
 <p>Minimum supported version: 1.18.0.</p>
 <p>Below is an example Nginx configuration which upholds the infrastructure
 requirements found in <code>/etc/nginx/sites-available/default</code>:</p>
-<pre><code>server {
+<pre><code class="language-ignore">server {
         listen 80 http2;
 
         location / {
@@ -210,7 +210,7 @@ server {
 <p>Minimum supported version: v2.4.3</p>
 <p>Below is an example Caddy configuration which upholds the infrastructure
 requirements found in <code>/etc/caddy/Caddyfile</code>:</p>
-<pre><code>example.com {
+<pre><code class="language-ignore">example.com {
   reverse_proxy localhost:19100 {
     transport http {
       versions h2c
@@ -258,7 +258,7 @@ docker volumes (<code>docker_linera-scylla-data</code> and <code>docker_linera-s
 <h3 id="verifying-installation"><a class="header" href="#verifying-installation">Verifying installation</a></h3>
 <p>To verify the installation, you can use the <code>query-validator</code> command. For
 example:</p>
-<pre><code>$ linera wallet init --with-new-chain --faucet https://faucet.testnet-archimedes.linera.net
+<pre><code class="language-bash">$ linera wallet init --with-new-chain --faucet https://faucet.testnet-archimedes.linera.net
 $ linera query-validator grpcs:my-domain.com:443
 
 RPC API hash: kd/Ru73B4ZZjXYkFqqSzoWzqpWi+NX+8IJLXOODjSko
