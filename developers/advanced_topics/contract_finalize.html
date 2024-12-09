@@ -169,9 +169,9 @@ it establishes after it responds to a cross-application call.</p>
 <code>Operation::StartSession</code> may require the same caller to perform another
 cross-application call with <code>Operation::EndSession</code> before the transaction ends.</p>
 <pre><code class="language-rust ignore">pub struct MyContract {
-    state: MyState;
-    runtime: ContractRuntime&lt;Self&gt;;
-    active_sessions: HashSet&lt;ApplicationId&gt;;
+    state: MyState,
+    runtime: ContractRuntime&lt;Self&gt;,
+    active_sessions: HashSet&lt;ApplicationId&gt;,
 }
 
 impl Contract for MyContract {
